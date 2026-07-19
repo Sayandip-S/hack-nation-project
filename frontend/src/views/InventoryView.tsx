@@ -48,7 +48,7 @@ export default function InventoryView() {
       <div>
         <h1 className="text-2xl font-semibold text-zinc-100">Inventory</h1>
         <p className="text-sm text-zinc-400 mt-1">
-          Capture rooms with photos or camera — atlas.ai estimates volume and briefs movers with it.
+          Capture rooms with photos or camera — Corridoor AI estimates volume and briefs movers with it.
         </p>
       </div>
 

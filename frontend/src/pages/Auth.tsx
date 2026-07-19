@@ -89,7 +89,7 @@ export default function Auth() {
       <div className="relative z-10 w-full max-w-md">
         <div className="flex flex-col items-center mb-6">
           <Logo3D size="sm" interactive />
-          <p className="text-3xl font-semibold tracking-tight text-primary mt-4">atlas.ai</p>
+          <p className="text-3xl font-semibold tracking-tight text-primary mt-4">Corridoor AI</p>
           <p className="text-sm text-teal-800/70 mt-1">{subtitle}</p>
         </div>
 

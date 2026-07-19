@@ -24,7 +24,7 @@ export function SettingsView() {
       <div className="card p-5 space-y-4">
         <div>
           <h2 className="text-sm font-semibold text-zinc-100">Move defaults</h2>
-          <p className="text-xs text-zinc-400 mt-0.5">Active job preferences used by Atlas.</p>
+          <p className="text-xs text-zinc-400 mt-0.5">Active job preferences used by Corridoor AI.</p>
         </div>
         <div className="space-y-3 text-sm">
           <div className="flex justify-between gap-3">
@@ -43,7 +43,7 @@ export function SettingsView() {
           </div>
           <div className="flex justify-between gap-3">
             <span className="text-zinc-400">Principle</span>
-            <span className="text-right">One AI. One Move. Complete Visibility.</span>
+            <span className="text-right">Your AI corridor to a smoother move.</span>
           </div>
         </div>
       </div>

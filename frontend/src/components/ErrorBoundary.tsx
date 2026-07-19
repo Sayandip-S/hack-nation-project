@@ -23,7 +23,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             <button
               className="mt-4 px-4 py-2 rounded-lg bg-teal-950 text-white text-sm"
               onClick={() => {
-                localStorage.removeItem("keyline.session");
+                localStorage.removeItem("corridoor.session");
                 window.location.href = "/welcome";
               }}
             >

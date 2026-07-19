@@ -1,4 +1,4 @@
-﻿# Hack Nation Project — Atlas.ai
+﻿# Hack Nation Project — Corridoor AI
 
 AI moving coordinator: plans the move, calls providers, compares quotes, and tracks inventory & budget.
 
@@ -11,13 +11,13 @@ Also: **[Backend setup & API contract](docs/BACKEND_SETUP.md)**
 **Frontend** (demo UI — mocks, no API required)
 
 ```powershell
-git checkout feature/atlas-ai
+git checkout feature/atlas-agent-chat-summary
 cd frontend
 npm install
 npm run dev
 ```
 
-Open http://localhost:5173 — login `demo@keyline.app` / `demo1234`
+Open http://localhost:5173 — login `demo@corridoor.ai` / `demo1234`
 
 **Backend** (optional for the UI demo)
 
@@ -31,6 +31,6 @@ Health: http://127.0.0.1:8000/ · Docs: http://127.0.0.1:8000/docs
 
 ## Branch
 
-All Atlas.ai frontend + docs live on:
+Corridoor AI frontend work lives on:
 
-`feature/atlas-ai`
+`feature/atlas-agent-chat-summary`

@@ -7,7 +7,7 @@ const CONTRACT = [
     id: "disclose",
     icon: Bot,
     title: "AI disclosure",
-    rule: "Agent identifies as atlas.ai calling on behalf of the customer. Answers “are you a robot?” honestly without abandoning the quote.",
+    rule: "Agent identifies as Corridoor AI calling on behalf of the customer. Answers “are you a robot?” honestly without abandoning the quote.",
     check: (ctx: Ctx) => ctx.hasDisclosurePitch,
   },
   {
@@ -49,7 +49,7 @@ export default function ConversationContract() {
   const structuredEnds = calls.filter(c =>
     c.status === "completed" || c.terminalOutcome === "callback" || c.terminalOutcome === "declined",
   ).length;
-  const hasDisclosurePitch = /atlas\.ai|AI moving coordinator/i.test(
+  const hasDisclosurePitch = /Corridoor AI|corridoor|AI moving coordinator/i.test(
     buildPitch(jobSpec).join(" "),
   );
 
@@ -69,7 +69,7 @@ export default function ConversationContract() {
         <div>
           <h3 className="text-base font-semibold text-zinc-100">On-call guardrails</h3>
           <p className="text-xs text-zinc-400 mt-1">
-            Live checks for how atlas.ai behaves during outbound calls.
+            Live checks for how Corridoor AI behaves during outbound calls.
           </p>
         </div>
         <div className="text-right shrink-0">

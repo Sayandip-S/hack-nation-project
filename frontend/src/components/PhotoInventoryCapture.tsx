@@ -29,7 +29,7 @@ export default function PhotoInventoryCapture() {
           <div>
             <h2 className="text-sm font-semibold text-zinc-100">Photo survey</h2>
             <p className="text-sm text-zinc-400 mt-0.5">
-              Upload room photos or use your camera. atlas.ai estimates furniture and volume,
+              Upload room photos or use your camera. Corridoor AI estimates furniture and volume,
               then uses that inventory when calling movers.
             </p>
           </div>

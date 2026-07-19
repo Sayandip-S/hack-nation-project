@@ -38,7 +38,7 @@ import {
 import { normalizeDecimal, type JobDetailsDto } from "../api/types";
 
 const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_DATA === "true";
-const ACTIVE_JOB_KEY = "keyline.activeJobId";
+const ACTIVE_JOB_KEY = "corridoor.activeJobId";
 
 interface State {
   welcomed: boolean;
@@ -270,7 +270,7 @@ function hydrateBackendDetails(
       id: uiId,
       companyName: provider.name,
       phone: provider.phone ?? known?.phone ?? "",
-      source: "The Negotiator API",
+      source: "Corridoor AI API",
       status: negotiation ? "negotiated" as const : quote ? "quoted" as const : calls.length ? "called" as const : "new" as const,
       calls,
       quote,
@@ -300,7 +300,7 @@ function hydrateBackendDetails(
     id: intake.id,
     type: intake.intake_type === "document" ? "inventory" : "quote",
     name: intake.original_filename ?? `${intake.intake_type} intake ${intake.sequence}`,
-    extractedNotes: intake.raw_text ?? intake.external_reference ?? "Stored by The Negotiator API",
+    extractedNotes: intake.raw_text ?? intake.external_reference ?? "Stored by Corridoor AI API",
     uploadedAt: intake.created_at,
   }));
 
@@ -594,7 +594,7 @@ function backendErrorMessage(error: unknown): string {
   if (!(error instanceof ApiError)) {
     return error instanceof Error ? error.message : "Unexpected backend error.";
   }
-  if (error.kind === "network") return "Cannot reach The Negotiator API. Check that the backend is running.";
+  if (error.kind === "network") return "Cannot reach Corridoor AI API. Check that the backend is running.";
   if (error.kind === "validation" && error.validationIssues.length) {
     return error.validationIssues
       .map(issue => `${issue.loc.join(".")}: ${issue.msg}`)

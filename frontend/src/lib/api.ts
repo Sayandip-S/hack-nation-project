@@ -122,7 +122,7 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
     response = await fetch(apiUrl(path), init);
   } catch (cause) {
     throw new ApiError({
-      message: "Unable to reach The Negotiator API.",
+      message: "Unable to reach Corridoor AI API.",
       status: 0,
       kind: "network",
       cause,

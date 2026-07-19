@@ -13,7 +13,7 @@ export const DEMO_ACCOUNTS: AccountRecord[] = [
     user: {
       id: "user-demo",
       name: "John Doe",
-      email: "demo@keyline.app",
+      email: "demo@corridoor.ai",
     },
     password: "demo1234",
     onboarded: true,
@@ -23,7 +23,7 @@ export const DEMO_ACCOUNTS: AccountRecord[] = [
     user: {
       id: "user-sara",
       name: "Sara Chen",
-      email: "sara@keyline.app",
+      email: "sara@corridoor.ai",
     },
     password: "sara1234",
     onboarded: true,
@@ -38,12 +38,12 @@ export const DEMO_ACCOUNTS: AccountRecord[] = [
 ];
 
 export const DEMO_LOGIN = {
-  email: "demo@keyline.app",
+  email: "demo@corridoor.ai",
   password: "demo1234",
   name: "John Doe",
 };
 
-const SESSION_KEY = "keyline.session";
+const SESSION_KEY = "corridoor.session";
 
 export interface PersistedSession {
   email: string;

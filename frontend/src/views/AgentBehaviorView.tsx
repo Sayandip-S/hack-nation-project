@@ -181,7 +181,7 @@ export default function AgentBehaviorView({ onNavigate }: { onNavigate: (id: Nav
             {messages.map(m => (
               <li key={m.id} className="px-4 sm:px-5 py-3 text-sm">
                 <span className="text-[10px] uppercase tracking-wide text-zinc-500 font-medium">
-                  {m.role === "user" ? "You" : "atlas.ai"}
+                  {m.role === "user" ? "You" : "Corridoor AI"}
                 </span>
                 <p className="text-zinc-200 mt-0.5">{m.text}</p>
               </li>

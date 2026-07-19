@@ -136,7 +136,7 @@ export default function IntakeWorkspace({ onOpenCaller }: { onOpenCaller?: () =>
           <p className="text-xs text-zinc-400 mb-3">
             {jobSpecReady
               ? "Brief locked. Editing fields updates the draft for the next confirm; outbound calls use the locked pitch until you re-confirm."
-              : "Confirm this pitch — atlas.ai will reuse it word-for-word on every call."}
+              : "Confirm this pitch — Corridoor AI will reuse it word-for-word on every call."}
           </p>
           <ol className="space-y-2 text-sm text-zinc-300 list-decimal pl-4">
             {pitch.map((line, i) => <li key={i}>{line}</li>)}

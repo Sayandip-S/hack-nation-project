@@ -43,10 +43,10 @@ export default function Welcome() {
         <Logo3D size="lg" interactive />
 
         <p className="mt-8 text-5xl md:text-6xl font-semibold tracking-tight text-primary welcome-brand">
-          atlas.ai
+          Corridoor AI
         </p>
         <p className="mt-2 text-sm md:text-base font-medium text-zinc-400">
-          One AI. One Move. Complete Visibility.
+          Your AI corridor to a smoother move.
         </p>
 
         <p className="mt-5 text-lg md:text-xl text-zinc-400 leading-relaxed min-h-[5.5rem] welcome-copy">

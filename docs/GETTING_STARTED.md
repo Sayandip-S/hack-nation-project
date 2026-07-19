@@ -1,4 +1,4 @@
-# Atlas.ai — How to make it work
+# Corridoor AI — How to make it work
 
 End-to-end setup for the Hack Nation project on branch  
 `feature/atlas-ai`.
@@ -51,8 +51,8 @@ Open **http://localhost:5173**
 
 | Email | Password | User |
 |-------|----------|------|
-| `demo@keyline.app` | `demo1234` | John Doe (Munich → Berlin) |
-| `sara@keyline.app` | `sara1234` | Sara Chen |
+| `demo@corridoor.ai` | `demo1234` | John Doe (Munich → Berlin) |
+| `sara@corridoor.ai` | `sara1234` | Sara Chen |
 
 ### Suggested click-path
 
@@ -156,5 +156,5 @@ backend/
 
 ## 7. Product note
 
-Atlas.ai coordinates a **physical move** (inventory → calls → quotes → close).  
+Corridoor AI coordinates a **physical move** (inventory → calls → quotes → close).  
 Demo corridor: **Munich → Berlin**, move date **14 Aug 2026**, budget ~**€1800**.

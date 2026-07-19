@@ -63,7 +63,7 @@ export default function Onboarding() {
     return (
       <div className="welcome-stage min-h-screen flex items-center justify-center p-6">
         <div className="card p-8 w-full max-w-lg relative z-10">
-          <p className="text-primary text-sm font-medium mb-1">atlas.ai · Confirm job spec</p>
+          <p className="text-primary text-sm font-medium mb-1">Corridoor AI · Confirm move brief</p>
           <h1 className="text-xl font-medium mb-2">This is exactly what I&apos;ll tell every company</h1>
           <p className="text-xs text-zinc-400 mb-4">
             Review your brief, then open the dashboard. You can start calling from The Caller when ready.
@@ -89,7 +89,7 @@ export default function Onboarding() {
   return (
     <div className="welcome-stage min-h-screen flex items-center justify-center p-6">
       <div className="card p-8 w-full max-w-lg relative z-10">
-        <p className="text-primary text-sm font-medium mb-1">atlas.ai · Job Spec</p>
+        <p className="text-primary text-sm font-medium mb-1">Corridoor AI · Move brief</p>
         <div className="text-xs text-zinc-500 mb-2">Step {i + 1} of {steps.length}</div>
         <h1 className="text-xl font-medium mb-5">{step.q}</h1>
         <input

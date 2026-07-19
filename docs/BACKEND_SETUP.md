@@ -1,4 +1,4 @@
-# Atlas.ai — Backend setup & integration guide
+# Corridoor AI — Backend setup & integration guide
 
 For the backend team working on [Sayandip-S/hack-nation-project](https://github.com/Sayandip-S/hack-nation-project).
 
@@ -8,7 +8,7 @@ Branch with the current frontend: `feature/atlas-ai-moving-universe`.
 
 ## What this product is
 
-**Atlas.ai** is an AI moving coordinator (not an apartment finder).
+**Corridoor AI** is an AI moving coordinator (not an apartment finder).
 
 The agent:
 
@@ -29,7 +29,7 @@ hack-nation-project/
 │   ├── main.py              # Minimal app today
 │   ├── pyproject.toml
 │   └── .venv/               # local only — gitignored
-├── frontend/                # Atlas Mission Control
+├── frontend/                # Corridoor AI Mission Control
 │   └── src/
 │       ├── types.ts         # Domain contracts (source of truth for shapes)
 │       ├── lib/store.tsx    # Client state (replace with API later)
@@ -122,7 +122,7 @@ The UI runs on **http://localhost:5173**. Allow that origin before the frontend 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="Atlas.ai API")
+app = FastAPI(title="Corridoor AI API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -161,8 +161,8 @@ Open [http://localhost:5173](http://localhost:5173).
 
 | Email | Password | Notes |
 |-------|----------|--------|
-| `demo@keyline.app` | `demo1234` | John Doe — Munich → Berlin, onboarded |
-| `sara@keyline.app` | `sara1234` | Second demo account |
+| `demo@corridoor.ai` | `demo1234` | John Doe — Munich → Berlin, onboarded |
+| `sara@corridoor.ai` | `sara1234` | Second demo account |
 
 When you own auth, keep these as seed users or document replacements.
 

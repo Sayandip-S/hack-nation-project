@@ -1,5 +1,5 @@
 /**
- * Vertical configuration — movers (The Negotiator).
+ * Vertical configuration — movers (Corridoor AI).
  * Swap this file to retarget without rewriting agent logic.
  */
 export const vertical = {
@@ -91,7 +91,7 @@ export const vertical = {
   ],
 
   callScriptTemplate: [
-    "Hi — I'm calling from atlas.ai, an AI moving coordinator, to get an itemised quote for a residential move.",
+    "Hi — I'm calling from Corridoor AI, an AI moving coordinator, to get an itemised quote for a residential move.",
     "Job: {{originCity}} ({{originStairs}} flights) to {{destCity}} ({{destStairs}} flights), about {{distanceMiles}} miles, long carry {{longCarryFt}} ft.",
     "We've surveyed the home with photos. Inventory estimate: {{inventorySummary}}. Date window {{dateStart}} to {{dateEnd}}. Services: {{services}}. Please itemise labor, stairs, long carry, truck size, and travel based on that inventory.",
   ],

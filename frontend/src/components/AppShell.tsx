@@ -14,7 +14,7 @@ const DEMO_NOTIFICATIONS = [
   {
     id: "n2",
     title: "Call wave finished",
-    body: "Atlas finished gathering quotes for your Munich → Berlin move.",
+    body: "Corridoor finished gathering quotes for your Munich → Berlin move.",
     time: "1 hr ago",
     unread: true,
   },
@@ -122,10 +122,10 @@ export default function AppShell({
       <aside className="hidden lg:flex w-52 shrink-0 flex-col border-r min-h-0 border-zinc-700 bg-zinc-900">
         <div className="px-5 pt-6 pb-4">
           <p className="text-lg font-semibold tracking-tight text-primary">
-            atlas.ai
+            Corridoor AI
           </p>
           <p className="text-[11px] mt-0.5 text-zinc-400">
-            One AI. One Move.
+            Your AI moving corridor.
           </p>
         </div>
         <div className="flex-1 overflow-y-auto min-h-0"><NavList /></div>
@@ -133,7 +133,7 @@ export default function AppShell({
 
       <aside className="hidden md:flex lg:hidden w-[4.25rem] shrink-0 flex-col border-r items-stretch border-zinc-700 bg-zinc-900">
         <div className="grid place-items-center py-5">
-          <span className="w-9 h-9 rounded-xl bg-primary text-white text-sm font-bold grid place-items-center">A</span>
+          <span className="w-9 h-9 rounded-xl bg-primary text-white text-sm font-bold grid place-items-center">C</span>
         </div>
         <div className="flex-1 overflow-y-auto"><NavList compact /></div>
       </aside>
@@ -143,7 +143,7 @@ export default function AppShell({
           <div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />
           <aside className="relative w-64 max-w-[85%] bg-zinc-900 h-full shadow-xl flex flex-col border-r border-zinc-700">
             <div className="flex items-center justify-between px-4 pt-4 pb-2">
-              <p className="text-lg font-semibold text-primary">atlas.ai</p>
+              <p className="text-lg font-semibold text-primary">Corridoor AI</p>
               <button type="button" onClick={() => setOpen(false)} className="p-1 text-zinc-500"><X size={18} /></button>
             </div>
             <div className="flex-1 overflow-y-auto"><NavList /></div>

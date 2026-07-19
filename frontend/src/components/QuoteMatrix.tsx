@@ -71,7 +71,7 @@ export default function QuoteMatrix() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold text-zinc-100">Moving Companies</h1>
-          <p className="text-sm text-zinc-400 mt-1">atlas.ai ranks providers — you approve the decision.</p>
+          <p className="text-sm text-zinc-400 mt-1">Corridoor AI ranks providers — you approve the decision.</p>
         </div>
         <div className="flex rounded-xl border border-zinc-700 p-0.5 bg-zinc-900">
           <button
@@ -154,7 +154,7 @@ export default function QuoteMatrix() {
           })}
           {!movers.some(m => m.quote) && (
             <p className="text-sm text-zinc-400 card p-4">
-              No quotes yet. Ask atlas.ai to call moving companies, or open Calls.
+              No quotes yet. Ask Corridoor AI to call moving companies, or open Calls.
             </p>
           )}
         </div>
@@ -198,7 +198,7 @@ export default function QuoteMatrix() {
               {matrixMovers[1]?.quote && pick.quote.totalEur > (matrixMovers.find(x => x.id !== pick.id && x.quote)?.quote?.totalEur ?? pick.quote.totalEur) && (
                 <> While a competitor may be slightly cheaper, {pick.companyName} includes stronger coverage and services, reducing your expected total cost.</>
               )}
-              {!matrixMovers[1]?.quote && <> atlas.ai selected this based on price, insurance, packing, and ETA.</>}
+              {!matrixMovers[1]?.quote && <> Corridoor AI selected this based on price, insurance, packing, and ETA.</>}
             </div>
           )}
         </div>

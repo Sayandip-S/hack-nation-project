@@ -17,7 +17,7 @@ export default function BudgetView() {
     <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-semibold text-zinc-100">Budget</h1>
-        <p className="text-sm text-zinc-400 mt-1">Supervise spend — atlas.ai flags where you can cut.</p>
+        <p className="text-sm text-zinc-400 mt-1">Supervise spend — Corridoor AI flags where you can cut.</p>
       </div>
 
       <div className="grid sm:grid-cols-3 gap-3">

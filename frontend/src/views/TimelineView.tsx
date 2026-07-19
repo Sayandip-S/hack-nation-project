@@ -18,7 +18,7 @@ const MILESTONES = [
     title: "Choose Company",
     when: "Jul 24",
     done: false,
-    subtasks: ["Compare matrix", "Review insurance", "Approve atlas.ai recommendation"],
+    subtasks: ["Compare matrix", "Review insurance", "Approve Corridoor AI recommendation"],
   },
   {
     title: "Pack Living Room",

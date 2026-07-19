@@ -28,7 +28,7 @@ export default function SummaryView() {
   const narrative = useMemo(() => {
     const parts: string[] = [];
     if (metrics.sessionsStarted === 0 && transcript.length === 0) {
-      return "No conversation yet. Start on Home — atlas.ai will greet you and learn from what you say.";
+      return "No conversation yet. Start on Home — Corridoor AI will greet you and learn from what you say.";
     }
     parts.push(
       `You ran ${metrics.sessionsStarted} session${metrics.sessionsStarted === 1 ? "" : "s"} ` +
@@ -82,7 +82,7 @@ export default function SummaryView() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `atlas-conversation-summary-${Date.now()}.json`;
+    a.download = `corridoor-conversation-summary-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -183,7 +183,7 @@ export default function SummaryView() {
                   )}
                 </div>
                 <p className="text-sm text-zinc-200"><span className="text-zinc-500">You · </span>{ev.userText}</p>
-                <p className="text-sm text-zinc-400 mt-1"><span className="text-zinc-500">atlas.ai · </span>{ev.agentReply}</p>
+                <p className="text-sm text-zinc-400 mt-1"><span className="text-zinc-500">Corridoor AI · </span>{ev.agentReply}</p>
               </li>
             ))}
           </ul>
@@ -234,7 +234,7 @@ export default function SummaryView() {
               <li key={m.id} className="px-4 sm:px-5 py-3 text-sm">
                 <div className="flex items-center gap-2 mb-0.5">
                   <span className="text-[10px] uppercase tracking-wide text-zinc-500 font-medium">
-                    {m.role === "user" ? "You" : "atlas.ai"}
+                    {m.role === "user" ? "You" : "Corridoor AI"}
                   </span>
                   <span className="text-[10px] text-zinc-600">{fmtTime(m.at)}</span>
                 </div>

@@ -42,7 +42,7 @@ export default function Logo3D({ size = "lg", interactive = true }: Logo3DProps)
       onClick={onClick}
       role={interactive ? "button" : undefined}
       tabIndex={interactive ? 0 : undefined}
-      aria-label={interactive ? "Keyline logo — drag to tilt, click to spin" : "Keyline logo"}
+      aria-label={interactive ? "Corridoor AI logo — drag to tilt, click to spin" : "Corridoor AI logo"}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick(); }}
     >
       <div

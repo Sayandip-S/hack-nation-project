@@ -75,9 +75,9 @@ export default function AgentPanel({
         {empty ? (
           <div className="chat-empty">
             <div className="chat-empty-mark" aria-hidden>
-              a
+              C
             </div>
-            <h2 className="chat-empty-title">atlas.ai</h2>
+            <h2 className="chat-empty-title">Corridoor AI</h2>
             <p className="chat-empty-sub">How can I help you today?</p>
             <div className="chat-suggestions">
               {SUGGESTIONS.map(s => (
@@ -96,12 +96,12 @@ export default function AgentPanel({
               >
                 {m.role === "agent" && (
                   <div className="chat-avatar" aria-hidden>
-                    a
+                    C
                   </div>
                 )}
                 <div className="chat-bubble">
                   {m.role === "agent" && (
-                    <p className="chat-role">atlas.ai</p>
+                    <p className="chat-role">Corridoor AI</p>
                   )}
                   <p className="chat-text">{m.text}</p>
                 </div>
@@ -110,7 +110,7 @@ export default function AgentPanel({
 
             {speaking && (
               <div className="chat-row chat-row-agent">
-                <div className="chat-avatar" aria-hidden>a</div>
+                <div className="chat-avatar" aria-hidden>C</div>
                 <div className="chat-bubble chat-typing">
                   <Loader2 size={14} className="animate-spin" />
                   <span>Thinking…</span>
@@ -149,7 +149,7 @@ export default function AgentPanel({
                 submit();
               }
             }}
-            placeholder={listening ? "Listening… or type instead" : "Message atlas.ai"}
+            placeholder={listening ? "Listening… or type instead" : "Message Corridoor AI"}
             className="chat-input"
           />
           <button

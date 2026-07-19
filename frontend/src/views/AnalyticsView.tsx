@@ -28,7 +28,7 @@ export default function AnalyticsView() {
     <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-semibold text-zinc-100">Analytics</h1>
-        <p className="text-sm text-zinc-400 mt-1">Proof of atlas.ai&apos;s value as your relocation manager.</p>
+        <p className="text-sm text-zinc-400 mt-1">Proof of Corridoor AI&apos;s value as your relocation manager.</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

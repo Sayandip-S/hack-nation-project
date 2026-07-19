@@ -24,7 +24,7 @@ export default function EstimatorView({
             <h2 className="text-xl sm:text-2xl font-semibold text-zinc-100 mt-1">The Estimator</h2>
             <p className="text-sm text-zinc-400 mt-1 max-w-2xl">
               Capture your move through a short interview, uploaded documents, or room photos.
-              Confirm the brief before atlas.ai calls anyone.
+              Confirm the brief before Corridoor AI calls anyone.
             </p>
           </div>
           <span className={`text-xs px-2.5 py-1 rounded-lg border ${
