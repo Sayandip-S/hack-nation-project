@@ -16,6 +16,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import TypeDecorator
@@ -89,11 +90,16 @@ class Job(Base):
 
 class Intake(Base):
     __tablename__ = "intakes"
+    __table_args__ = (
+        CheckConstraint("sequence > 0", name="ck_intake_sequence_positive"),
+        UniqueConstraint("job_id", "sequence", name="uq_intake_job_sequence"),
+    )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     job_id: Mapped[UUID] = mapped_column(
         ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    sequence: Mapped[int] = mapped_column(Integer, nullable=False)
     intake_type: Mapped[IntakeType] = mapped_column(
         Enum(IntakeType, native_enum=False, length=20), nullable=False
     )

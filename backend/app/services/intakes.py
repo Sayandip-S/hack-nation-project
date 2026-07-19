@@ -4,8 +4,8 @@ from pathlib import Path
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException, UploadFile, status
-from sqlalchemy import select
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.config import Settings
@@ -25,9 +25,26 @@ UPLOAD_CHUNK_SIZE = 1024 * 1024
 
 def _save_intake(db: Session, intake: Intake) -> Intake:
     job = intake.job
-    job.status = JobStatus.INTAKE_RECEIVED
-    db.add(intake)
-    db.commit()
+    try:
+        current_maximum = db.scalar(
+            select(func.max(Intake.sequence)).where(Intake.job_id == job.id)
+        )
+        intake.sequence = (current_maximum or 0) + 1
+        job.status = JobStatus.INTAKE_RECEIVED
+        db.add(intake)
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Intake sequence conflict; retry the request",
+        ) from exc
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to save intake",
+        ) from exc
     db.refresh(intake)
     return intake
 
@@ -61,11 +78,7 @@ def create_voice_intake(
 
 def list_intakes(db: Session, job_id: UUID) -> list[Intake]:
     get_job_or_404(db, job_id)
-    statement = (
-        select(Intake)
-        .where(Intake.job_id == job_id)
-        .order_by(Intake.created_at, Intake.id)
-    )
+    statement = select(Intake).where(Intake.job_id == job_id).order_by(Intake.sequence)
     return list(db.scalars(statement))
 
 
@@ -152,6 +165,9 @@ async def create_document_intake(
     )
     try:
         return _save_intake(db, intake)
+    except HTTPException:
+        target_path.unlink(missing_ok=True)
+        raise
     except SQLAlchemyError as exc:
         db.rollback()
         target_path.unlink(missing_ok=True)

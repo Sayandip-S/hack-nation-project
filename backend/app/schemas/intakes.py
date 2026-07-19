@@ -40,6 +40,7 @@ class IntakeResponse(ApiModel):
 
     id: UUID
     job_id: UUID
+    sequence: int
     intake_type: IntakeType
     raw_text: str | None
     original_filename: str | None

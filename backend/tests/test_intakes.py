@@ -161,6 +161,63 @@ def test_list_intakes_oldest_first(client: TestClient) -> None:
 
     assert response.status_code == 200
     assert [item["id"] for item in response.json()] == [first["id"], second["id"]]
+    assert [item["sequence"] for item in response.json()] == [1, 2]
+
+
+def test_intake_sequences_are_scoped_per_job(client: TestClient) -> None:
+    first_job = create_job(client, title="First move")
+    second_job = create_job(client, title="Second move")
+
+    first_job_intake = client.post(
+        f"/api/v1/jobs/{first_job['id']}/intakes/text",
+        json={"text": "First job intake"},
+    )
+    second_job_intake = client.post(
+        f"/api/v1/jobs/{second_job['id']}/intakes/text",
+        json={"text": "Second job intake"},
+    )
+
+    assert first_job_intake.json()["sequence"] == 1
+    assert second_job_intake.json()["sequence"] == 1
+
+
+def test_client_cannot_override_intake_sequence(client: TestClient) -> None:
+    job = create_job(client)
+
+    first = client.post(
+        f"/api/v1/jobs/{job['id']}/intakes/text",
+        json={"text": "First intake", "sequence": 99},
+    )
+    second = client.post(
+        f"/api/v1/jobs/{job['id']}/intakes/voice-reference",
+        json={"conversation_id": "second", "sequence": 99},
+    )
+
+    assert first.json()["sequence"] == 1
+    assert second.json()["sequence"] == 2
+
+
+def test_all_intake_types_share_sequence_assignment(client: TestClient) -> None:
+    job = create_job(client)
+
+    text = client.post(
+        f"/api/v1/jobs/{job['id']}/intakes/text",
+        json={"text": "Text intake"},
+    )
+    document = client.post(
+        f"/api/v1/jobs/{job['id']}/intakes/upload",
+        files={"file": ("move.txt", b"Document intake", "text/plain")},
+    )
+    voice = client.post(
+        f"/api/v1/jobs/{job['id']}/intakes/voice-reference",
+        json={"conversation_id": "voice-intake"},
+    )
+
+    assert [
+        text.json()["sequence"],
+        document.json()["sequence"],
+        voice.json()["sequence"],
+    ] == [1, 2, 3]
 
 
 def test_intake_requires_existing_job(client: TestClient) -> None:

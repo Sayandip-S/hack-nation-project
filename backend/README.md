@@ -15,3 +15,11 @@ Interactive API documentation is available at `http://127.0.0.1:8000/docs`.
 job's specification and `200 OK` when it updates the existing draft. A confirmed
 specification is immutable in the current MVP: subsequent updates and repeated
 confirmation attempts return `409 Conflict`.
+
+## Local database schema changes
+
+This MVP uses `Base.metadata.create_all()` rather than migrations. That operation
+creates missing tables but does not add columns to existing tables. After pulling
+the intake-sequence schema change, an existing local `negotiator.db` must therefore
+be deleted manually and recreated by restarting the API. The application will not
+delete it automatically; preserve or export any local data you need first.
