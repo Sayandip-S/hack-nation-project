@@ -22,7 +22,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import TypeDecorator
 
 from app.database import Base
-from app.models.enums import IntakeType, JobStatus, SpecificationStatus
+from app.models.enums import (
+    IntakeType,
+    JobStatus,
+    ProviderCallStatus,
+    SpecificationStatus,
+)
 
 
 def utc_now() -> datetime:
@@ -85,6 +90,10 @@ class Job(Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
         uselist=False,
+    )
+    provider_calls: Mapped[list["ProviderCall"]] = relationship(
+        back_populates="job",
+        cascade="all, delete-orphan",
     )
 
 
@@ -158,3 +167,62 @@ class JobSpecification(Base):
     )
 
     job: Mapped[Job] = relationship(back_populates="specification")
+
+
+class Provider(Base):
+    __tablename__ = "providers"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    phone: Mapped[str | None] = mapped_column(String(20))
+    email: Mapped[str | None] = mapped_column(String(320))
+    website: Mapped[str | None] = mapped_column(String(500))
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(
+        UTCDateTime(), default=utc_now, onupdate=utc_now
+    )
+
+    provider_calls: Mapped[list["ProviderCall"]] = relationship(
+        back_populates="provider"
+    )
+
+
+class ProviderCall(Base):
+    __tablename__ = "provider_calls"
+    __table_args__ = (
+        CheckConstraint(
+            "duration_seconds IS NULL OR duration_seconds >= 0",
+            name="ck_provider_call_duration_non_negative",
+        ),
+        UniqueConstraint("job_id", "provider_id", name="uq_provider_call_job_provider"),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    job_id: Mapped[UUID] = mapped_column(
+        ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    provider_id: Mapped[UUID] = mapped_column(
+        ForeignKey("providers.id"), nullable=False, index=True
+    )
+    status: Mapped[ProviderCallStatus] = mapped_column(
+        Enum(ProviderCallStatus, native_enum=False, length=20),
+        nullable=False,
+        default=ProviderCallStatus.PENDING,
+    )
+    external_call_id: Mapped[str | None] = mapped_column(String(500))
+    elevenlabs_conversation_id: Mapped[str | None] = mapped_column(String(500))
+    started_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
+    completed_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
+    duration_seconds: Mapped[int | None] = mapped_column(Integer)
+    transcript_text: Mapped[str | None] = mapped_column(Text)
+    transcript_json: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
+    recording_url: Mapped[str | None] = mapped_column(String(2_000))
+    summary: Mapped[str | None] = mapped_column(Text)
+    error_message: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(
+        UTCDateTime(), default=utc_now, onupdate=utc_now
+    )
+
+    job: Mapped[Job] = relationship(back_populates="provider_calls")
+    provider: Mapped[Provider] = relationship(back_populates="provider_calls")

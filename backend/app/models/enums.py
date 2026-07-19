@@ -25,3 +25,17 @@ class IntakeType(str, Enum):
 class SpecificationStatus(str, Enum):
     DRAFT = "draft"
     CONFIRMED = "confirmed"
+
+
+class ProviderCallStatus(str, Enum):
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class TranscriptSpeaker(str, Enum):
+    AGENT = "agent"
+    PROVIDER = "provider"
+    SYSTEM = "system"
+    UNKNOWN = "unknown"

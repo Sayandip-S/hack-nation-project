@@ -18,6 +18,8 @@ from app.database import (
     engine,
 )
 from app.routers.jobs import router as jobs_router
+from app.routers.provider_calls import router as provider_calls_router
+from app.routers.providers import router as providers_router
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -56,6 +58,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_headers=["*"],
     )
     application.include_router(jobs_router)
+    application.include_router(providers_router)
+    application.include_router(provider_calls_router)
 
     @application.get("/")
     def root() -> dict[str, str]:

@@ -1,7 +1,13 @@
 """Persistent domain models."""
 
-from app.models.domain import Intake, Job, JobSpecification
-from app.models.enums import IntakeType, JobStatus, SpecificationStatus
+from app.models.domain import Intake, Job, JobSpecification, Provider, ProviderCall
+from app.models.enums import (
+    IntakeType,
+    JobStatus,
+    ProviderCallStatus,
+    SpecificationStatus,
+    TranscriptSpeaker,
+)
 
 __all__ = [
     "Intake",
@@ -9,5 +15,9 @@ __all__ = [
     "Job",
     "JobSpecification",
     "JobStatus",
+    "Provider",
+    "ProviderCall",
+    "ProviderCallStatus",
     "SpecificationStatus",
+    "TranscriptSpeaker",
 ]
