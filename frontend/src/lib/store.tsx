@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useCallback, useRef } from "react";
+import React, { createContext, useContext, useReducer, useCallback, useEffect, useRef } from "react";
 import {
   AgentProfileId, Call, DealRecommendation, Fact, IntakeDocument, InventoryPhoto, JobSpec,
   Mover, Performance, PhaseId, User, VoiceTurn,
@@ -10,6 +10,35 @@ import {
 import { DEMO_ACCOUNTS, AccountRecord, clearSession, loadSession, saveSession } from "../mock/auth";
 import { buildQuote, detectMoverRisks, runCall } from "../mock/engine";
 import { analyzeRoomPhoto, mergePhotoInventory } from "../mock/vision";
+import {
+  ApiError,
+  confirmSpecification,
+  createJob,
+  createNegotiation,
+  createProvider,
+  createProviderCallBatch,
+  createQuote,
+  createTextIntake,
+  generateRecommendation,
+  getJobDetails,
+  rankProviders,
+  saveSpecification,
+  updateProviderCall,
+} from "./api";
+import {
+  callToProviderCallUpdateRequest,
+  jobSpecToSpecificationRequest,
+  providerCallToCall,
+  providerIdsToCallBatch,
+  providerToMover,
+  quoteDtoToQuote,
+  recommendationDtoToDealRecommendation,
+  specificationToJobSpec,
+} from "../api/adapters";
+import { normalizeDecimal, type JobDetailsDto } from "../api/types";
+
+const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_DATA === "true";
+const ACTIVE_JOB_KEY = "keyline.activeJobId";
 
 interface State {
   welcomed: boolean;
@@ -31,6 +60,23 @@ interface State {
   recommendation: DealRecommendation | null;
   wavesRunning: boolean;
   analyzingPhotos: boolean;
+  activeJobId: string | null;
+  loading: boolean;
+  backendError: string | null;
+  providerIdMap: Record<string, string>;
+  providerCallIdMap: Record<string, string>;
+  quoteIdMap: Record<string, string>;
+}
+
+interface BackendHydration {
+  jobSpec: JobSpec;
+  jobSpecReady: boolean;
+  movers: Mover[];
+  recommendation: DealRecommendation | null;
+  intakeDocs: IntakeDocument[];
+  providerIdMap: Record<string, string>;
+  providerCallIdMap: Record<string, string>;
+  quoteIdMap: Record<string, string>;
 }
 
 type Action =
@@ -54,7 +100,12 @@ type Action =
   | { type: "SET_VOICE_STEP"; step: number }
   | { type: "SET_JOB_SPEC_READY"; ready: boolean }
   | { type: "SET_RECOMMENDATION"; rec: DealRecommendation | null }
-  | { type: "SET_WAVES_RUNNING"; running: boolean };
+  | { type: "SET_WAVES_RUNNING"; running: boolean }
+  | { type: "SET_ACTIVE_JOB"; jobId: string | null }
+  | { type: "SET_LOADING"; loading: boolean }
+  | { type: "SET_BACKEND_ERROR"; error: string | null }
+  | { type: "SET_BACKEND_MAPS"; providerIds?: Record<string, string>; callIds?: Record<string, string>; quoteIds?: Record<string, string> }
+  | { type: "HYDRATE_BACKEND"; hydration: BackendHydration };
 
 export type AuthResult =
   | { ok: true; onboarded: boolean }
@@ -148,6 +199,119 @@ function recomputePerf(movers: Mover[], activity: Performance["activity"]): Perf
   };
 }
 
+function hydrateBackendDetails(
+  details: JobDetailsDto,
+  currentMovers: Mover[],
+  currentJobSpec: JobSpec,
+): BackendHydration {
+  const providerIdMap: Record<string, string> = {};
+  const providerCallIdMap: Record<string, string> = {};
+  const quoteIdMap: Record<string, string> = {};
+  const providerToUiId = new Map<string, string>();
+
+  const hydratedMovers = details.providers.map(provider => {
+    const known = currentMovers.find(mover =>
+      mover.companyName.localeCompare(provider.name, undefined, { sensitivity: "base" }) === 0
+      || providerIdMap[mover.id] === provider.id,
+    );
+    const adapted = providerToMover(provider);
+    const uiId = known?.id ?? adapted.id;
+    providerIdMap[uiId] = provider.id;
+    providerToUiId.set(provider.id, uiId);
+
+    const providerCalls = details.provider_calls
+      .filter(call => call.provider_id === provider.id)
+      .map(call => ({ ...providerCallToCall(call), moverId: uiId }));
+    const backendQuote = details.quotes.find(quote => quote.provider_id === provider.id);
+    const ranking = details.rankings.find(row => row.provider_id === provider.id);
+    const negotiation = [...details.negotiations]
+      .reverse()
+      .find(row => row.provider_id === provider.id);
+
+    for (const call of providerCalls) providerCallIdMap[uiId] = call.id;
+    if (backendQuote) {
+      quoteIdMap[uiId] = backendQuote.id;
+      quoteIdMap[backendQuote.provider_call_id] = backendQuote.id;
+    }
+
+    const calls = providerCalls.map(call => {
+      if (!backendQuote || call.id !== backendQuote.provider_call_id) return call;
+      const initial = normalizeDecimal(backendQuote.total_amount);
+      const final = negotiation ? normalizeDecimal(negotiation.after_total) : initial;
+      return {
+        ...call,
+        terminalOutcome: negotiation ? "negotiated" as const : call.terminalOutcome,
+        quoteLines: backendQuote.items.map(item => ({
+          id: item.id,
+          label: item.description,
+          amountEur: normalizeDecimal(item.total_price),
+        })),
+        quotedTotalEur: initial,
+        initialQuoteEur: initial,
+        finalQuoteEur: final,
+        negotiatedTotalEur: negotiation ? final : undefined,
+      };
+    });
+
+    const quote = backendQuote
+      ? {
+          ...quoteDtoToQuote(backendQuote, vertical.marketMedianEur),
+          rank: ranking?.rank,
+          totalEur: ranking ? normalizeDecimal(ranking.final_price) : normalizeDecimal(backendQuote.total_amount),
+        }
+      : undefined;
+
+    return {
+      ...(known ?? adapted),
+      id: uiId,
+      companyName: provider.name,
+      phone: provider.phone ?? known?.phone ?? "",
+      source: "The Negotiator API",
+      status: negotiation ? "negotiated" as const : quote ? "quoted" as const : calls.length ? "called" as const : "new" as const,
+      calls,
+      quote,
+      facts: [],
+      risks: [],
+    };
+  });
+
+  const movers = hydratedMovers.length ? hydratedMovers : currentMovers;
+  const backendRecommendation = details.recommendation;
+  const recommendedProvider = backendRecommendation
+    ? details.providers.find(provider => provider.id === backendRecommendation.recommended_provider_id)
+    : undefined;
+  const recommendation = backendRecommendation
+    ? {
+        ...recommendationDtoToDealRecommendation(
+          backendRecommendation,
+          recommendedProvider,
+          vertical.marketMedianEur,
+        ),
+        moverId: providerToUiId.get(backendRecommendation.recommended_provider_id)
+          ?? backendRecommendation.recommended_provider_id,
+      }
+    : null;
+
+  const intakeDocs: IntakeDocument[] = details.intakes.map(intake => ({
+    id: intake.id,
+    type: intake.intake_type === "document" ? "inventory" : "quote",
+    name: intake.original_filename ?? `${intake.intake_type} intake ${intake.sequence}`,
+    extractedNotes: intake.raw_text ?? intake.external_reference ?? "Stored by The Negotiator API",
+    uploadedAt: intake.created_at,
+  }));
+
+  return {
+    jobSpec: details.specification ? specificationToJobSpec(details.specification) : currentJobSpec,
+    jobSpecReady: details.workflow_summary.specification_confirmed,
+    movers,
+    recommendation,
+    intakeDocs,
+    providerIdMap,
+    providerCallIdMap,
+    quoteIdMap,
+  };
+}
+
 const now = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
 function reducer(state: State, action: Action): State {
@@ -155,27 +319,30 @@ function reducer(state: State, action: Action): State {
     case "DISMISS_WELCOME":
       return { ...state, welcomed: true };
     case "SIGN_IN":
+      {
+      const preserveBackend = !USE_MOCK_DATA && !!state.activeJobId;
       return {
         ...state,
         user: action.user,
         onboarded: action.onboarded,
-        jobSpec: action.jobSpec,
-        movers: rankMovers(seedMovers.map(withDerived)),
+        jobSpec: preserveBackend ? state.jobSpec : action.jobSpec,
+        movers: preserveBackend ? state.movers : rankMovers(seedMovers.map(withDerived)),
         searching: false,
         savedIds: [],
         lastSearchAt: null,
         phase: "intake",
         agentProfile: "estimator",
-        intakeDocs: [],
+        intakeDocs: preserveBackend ? state.intakeDocs : [],
         inventoryPhotos: [],
         voiceLog: [],
         voiceStep: 0,
-        jobSpecReady: action.onboarded,
-        recommendation: null,
+        jobSpecReady: preserveBackend ? state.jobSpecReady : action.onboarded,
+        recommendation: preserveBackend ? state.recommendation : null,
         wavesRunning: false,
         analyzingPhotos: false,
         perf: seedPerformance,
       };
+      }
     case "SIGN_UP":
       return {
         ...state,
@@ -219,6 +386,12 @@ function reducer(state: State, action: Action): State {
         recommendation: null,
         wavesRunning: false,
         analyzingPhotos: false,
+        activeJobId: state.activeJobId,
+        loading: state.loading,
+        backendError: state.backendError,
+        providerIdMap: state.providerIdMap,
+        providerCallIdMap: state.providerCallIdMap,
+        quoteIdMap: state.quoteIdMap,
       };
     case "COMPLETE_ONBOARDING":
       return {
@@ -339,6 +512,37 @@ function reducer(state: State, action: Action): State {
       return { ...state, recommendation: action.rec };
     case "SET_WAVES_RUNNING":
       return { ...state, wavesRunning: action.running };
+    case "SET_ACTIVE_JOB":
+      return action.jobId
+        ? { ...state, activeJobId: action.jobId }
+        : {
+            ...state,
+            activeJobId: null,
+            providerIdMap: {},
+            providerCallIdMap: {},
+            quoteIdMap: {},
+          };
+    case "SET_LOADING":
+      return { ...state, loading: action.loading };
+    case "SET_BACKEND_ERROR":
+      return { ...state, backendError: action.error };
+    case "SET_BACKEND_MAPS":
+      return {
+        ...state,
+        providerIdMap: action.providerIds ? { ...state.providerIdMap, ...action.providerIds } : state.providerIdMap,
+        providerCallIdMap: action.callIds ? { ...state.providerCallIdMap, ...action.callIds } : state.providerCallIdMap,
+        quoteIdMap: action.quoteIds ? { ...state.quoteIdMap, ...action.quoteIds } : state.quoteIdMap,
+      };
+    case "HYDRATE_BACKEND": {
+      const hydration = action.hydration;
+      const perf = recomputePerf(hydration.movers, state.perf.activity);
+      return {
+        ...state,
+        ...hydration,
+        perf,
+        backendError: null,
+      };
+    }
     default:
       return state;
   }
@@ -374,12 +578,47 @@ interface Ctx extends State {
 
 const StoreContext = createContext<Ctx | null>(null);
 
+function backendErrorMessage(error: unknown): string {
+  if (!(error instanceof ApiError)) {
+    return error instanceof Error ? error.message : "Unexpected backend error.";
+  }
+  if (error.kind === "network") return "Cannot reach The Negotiator API. Check that the backend is running.";
+  if (error.kind === "validation" && error.validationIssues.length) {
+    return error.validationIssues
+      .map(issue => `${issue.loc.join(".")}: ${issue.msg}`)
+      .join("; ");
+  }
+  if (error.kind === "not_found") return `Backend resource not found: ${error.message}`;
+  if (error.kind === "conflict") return `Backend workflow conflict: ${error.message}`;
+  return error.message;
+}
+
+function apiPhone(phone: string): string | null {
+  const normalized = phone.trim().startsWith("+")
+    ? `+${phone.replace(/\D/g, "")}`
+    : phone.replace(/\D/g, "");
+  return /^\+[1-9]\d{7,14}$/.test(normalized) ? normalized : null;
+}
+
+function intakeText(spec: JobSpec): string {
+  return [
+    `Residential move from ${spec.originCity} to ${spec.destCity}.`,
+    `Origin stairs: ${spec.originStairs}; destination stairs: ${spec.destStairs}.`,
+    `Distance: ${spec.distanceMiles} miles; long carry: ${spec.longCarryFt} ft.`,
+    `Move window: ${spec.dateWindow[0]} to ${spec.dateWindow[1]}.`,
+    `Services: ${spec.services.join(", ")}.`,
+    `Inventory: ${inventorySummary(spec)}.`,
+    spec.notes ?? "",
+  ].filter(Boolean).join(" ");
+}
+
 function buildInitialState(_accounts: AccountRecord[]): State {
   const session = loadSession();
   const account = session
     ? DEMO_ACCOUNTS.find(a => a.user.email.toLowerCase() === session.email.toLowerCase())
     : null;
   if (session && !account) clearSession();
+  const activeJobId = USE_MOCK_DATA ? null : localStorage.getItem(ACTIVE_JOB_KEY);
 
   return {
     welcomed: !!account,
@@ -401,6 +640,12 @@ function buildInitialState(_accounts: AccountRecord[]): State {
     recommendation: null,
     wavesRunning: false,
     analyzingPhotos: false,
+    activeJobId,
+    loading: false,
+    backendError: null,
+    providerIdMap: {},
+    providerCallIdMap: {},
+    quoteIdMap: {},
   };
 }
 
@@ -411,6 +656,172 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, () => buildInitialState(accountsRef.current));
   const moversRef = useRef(state.movers);
   moversRef.current = state.movers;
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const activeJobIdRef = useRef(state.activeJobId);
+  activeJobIdRef.current = state.activeJobId;
+  const providerIdMapRef = useRef(state.providerIdMap);
+  providerIdMapRef.current = state.providerIdMap;
+  const providerCallIdMapRef = useRef(state.providerCallIdMap);
+  providerCallIdMapRef.current = state.providerCallIdMap;
+  const quoteIdMapRef = useRef(state.quoteIdMap);
+  quoteIdMapRef.current = state.quoteIdMap;
+  const quoteTotalsRef = useRef<Record<string, number>>({});
+  const inFlightRef = useRef(new Set<string>());
+  const startupPromiseRef = useRef<Promise<void> | null>(null);
+  const workflowPromiseRef = useRef<Promise<string | null> | null>(null);
+  const intakeSubmittedRef = useRef(false);
+  const specificationConfirmedRef = useRef(false);
+  const negotiationCreatedRef = useRef(false);
+  const negotiationInFlightRef = useRef(false);
+  const wavesStartingRef = useRef(false);
+
+  const runBackendOperation = useCallback(async function runBackendOperation<T>(
+    key: string,
+    operation: () => Promise<T>,
+    onError?: (error: unknown) => boolean,
+  ): Promise<T | null> {
+    if (USE_MOCK_DATA || inFlightRef.current.has(key)) return null;
+    inFlightRef.current.add(key);
+    dispatch({ type: "SET_LOADING", loading: true });
+    dispatch({ type: "SET_BACKEND_ERROR", error: null });
+    try {
+      return await operation();
+    } catch (error) {
+      const handled = onError?.(error) ?? false;
+      if (!handled) dispatch({ type: "SET_BACKEND_ERROR", error: backendErrorMessage(error) });
+      return null;
+    } finally {
+      inFlightRef.current.delete(key);
+      dispatch({ type: "SET_LOADING", loading: inFlightRef.current.size > 0 });
+    }
+  }, []);
+
+  const applyBackendDetails = useCallback((details: JobDetailsDto) => {
+    const hydration = hydrateBackendDetails(details, moversRef.current, stateRef.current.jobSpec);
+    providerIdMapRef.current = hydration.providerIdMap;
+    providerCallIdMapRef.current = hydration.providerCallIdMap;
+    quoteIdMapRef.current = hydration.quoteIdMap;
+    quoteTotalsRef.current = {};
+    for (const quote of details.quotes) {
+      const uiId = Object.entries(hydration.providerIdMap)
+        .find(([, providerId]) => providerId === quote.provider_id)?.[0];
+      if (uiId) quoteTotalsRef.current[uiId] = normalizeDecimal(quote.total_amount);
+    }
+    intakeSubmittedRef.current = details.intakes.length > 0;
+    specificationConfirmedRef.current = details.workflow_summary.specification_confirmed;
+    negotiationCreatedRef.current = details.negotiations.length > 0;
+    dispatch({ type: "HYDRATE_BACKEND", hydration });
+  }, []);
+
+  const loadBackendJob = useCallback(async (jobId: string, startup = false): Promise<void> => {
+    await runBackendOperation(`load-job:${jobId}`, async () => {
+      const details = await getJobDetails(jobId);
+      applyBackendDetails(details);
+    }, error => {
+      if (startup && error instanceof ApiError && error.status === 404) {
+        localStorage.removeItem(ACTIVE_JOB_KEY);
+        activeJobIdRef.current = null;
+        providerIdMapRef.current = {};
+        providerCallIdMapRef.current = {};
+        quoteIdMapRef.current = {};
+        quoteTotalsRef.current = {};
+        intakeSubmittedRef.current = false;
+        specificationConfirmedRef.current = false;
+        negotiationCreatedRef.current = false;
+        dispatch({ type: "SET_ACTIVE_JOB", jobId: null });
+        dispatch({ type: "SET_BACKEND_MAPS", providerIds: {}, callIds: {}, quoteIds: {} });
+        dispatch({ type: "SET_BACKEND_ERROR", error: null });
+        return true;
+      }
+      return false;
+    });
+  }, [applyBackendDetails, runBackendOperation]);
+
+  const ensureBackendWorkflow = useCallback(async (spec: JobSpec): Promise<string | null> => {
+    if (USE_MOCK_DATA) return null;
+    if (startupPromiseRef.current) await startupPromiseRef.current;
+    if (workflowPromiseRef.current) return workflowPromiseRef.current;
+
+    const promise = runBackendOperation("prepare-backend-workflow", async () => {
+      let jobId = activeJobIdRef.current;
+      if (!jobId) {
+        const user = stateRef.current.user;
+        const job = await createJob({
+          title: `${spec.originCity} to ${spec.destCity} move`,
+          customer_name: user?.name ?? null,
+          customer_email: user?.email ?? null,
+        });
+        jobId = job.id;
+        activeJobIdRef.current = jobId;
+        localStorage.setItem(ACTIVE_JOB_KEY, jobId);
+        dispatch({ type: "SET_ACTIVE_JOB", jobId });
+      }
+
+      if (!intakeSubmittedRef.current) {
+        await createTextIntake(jobId, { text: intakeText(spec) });
+        intakeSubmittedRef.current = true;
+      }
+
+      if (!specificationConfirmedRef.current) {
+        await saveSpecification(jobId, jobSpecToSpecificationRequest(spec));
+        await confirmSpecification(jobId);
+        specificationConfirmedRef.current = true;
+        dispatch({ type: "SET_JOB_SPEC_READY", ready: true });
+      }
+
+      const selectedMovers = moversRef.current.slice(0, 3);
+      if (selectedMovers.length !== 3) {
+        throw new Error("Three movers are required before creating the backend call batch.");
+      }
+
+      const providerIds = { ...providerIdMapRef.current };
+      for (const mover of selectedMovers) {
+        if (providerIds[mover.id]) continue;
+        const provider = await createProvider({
+          name: mover.companyName,
+          phone: apiPhone(mover.phone),
+        });
+        providerIds[mover.id] = provider.id;
+        providerIdMapRef.current = { ...providerIds };
+        dispatch({ type: "SET_BACKEND_MAPS", providerIds: { [mover.id]: provider.id } });
+      }
+
+      const existingCallIds = selectedMovers
+        .map(mover => providerCallIdMapRef.current[mover.id])
+        .filter((id): id is string => Boolean(id));
+      if (existingCallIds.length !== 3) {
+        const batch = await createProviderCallBatch(
+          jobId,
+          providerIdsToCallBatch(selectedMovers.map(mover => providerIds[mover.id]!)),
+        );
+        const callIds: Record<string, string> = {};
+        for (const call of batch) {
+          const uiMover = selectedMovers.find(mover => providerIds[mover.id] === call.provider_id);
+          if (uiMover) callIds[uiMover.id] = call.id;
+        }
+        providerCallIdMapRef.current = { ...providerCallIdMapRef.current, ...callIds };
+        dispatch({ type: "SET_BACKEND_MAPS", callIds });
+      }
+
+      return jobId;
+    });
+    workflowPromiseRef.current = promise;
+    try {
+      return await promise;
+    } finally {
+      if (workflowPromiseRef.current === promise) workflowPromiseRef.current = null;
+    }
+  }, [runBackendOperation]);
+
+  useEffect(() => {
+    if (USE_MOCK_DATA || !activeJobIdRef.current) return;
+    const promise = loadBackendJob(activeJobIdRef.current, true);
+    startupPromiseRef.current = promise;
+    void promise.finally(() => {
+      if (startupPromiseRef.current === promise) startupPromiseRef.current = null;
+    });
+  }, [loadBackendJob]);
 
   const signIn = useCallback((email: string, password: string, keepLoggedIn = false): AuthResult => {
     const account = accountsRef.current.find(a => a.user.email.toLowerCase() === email.toLowerCase());
@@ -465,6 +876,100 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return { ok: true, message: "Password updated. You can sign in with your new password." };
   }, []);
 
+  const syncCompletedCall = useCallback((mover: Mover, call: Call) => {
+    if (USE_MOCK_DATA || call.status !== "completed") return;
+    const jobId = activeJobIdRef.current;
+    const backendCallId = providerCallIdMapRef.current[mover.id];
+    if (!jobId || !backendCallId) return;
+
+    void runBackendOperation(`sync-call:${backendCallId}:wave-${call.wave}`, async () => {
+      await updateProviderCall(backendCallId, callToProviderCallUpdateRequest(call));
+
+      let targetQuoteId = quoteIdMapRef.current[mover.id];
+      if (!targetQuoteId) {
+        const sourceLines = call.quoteLines.length
+          ? call.quoteLines
+          : [{ id: `${call.id}-total`, label: "Moving service", amountEur: call.finalQuoteEur ?? call.initialQuoteEur ?? 1 }];
+        const items = sourceLines.map(line => {
+          const amount = Math.max(0, line.amountEur);
+          return {
+            category: line.label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "service",
+            description: line.label,
+            quantity: 1,
+            unit: "service",
+            unit_price: amount,
+            total_price: amount,
+          };
+        });
+        const totalAmount = items.reduce((sum, item) => sum + item.total_price, 0);
+        if (totalAmount <= 0) throw new Error("A positive itemised quote total is required.");
+
+        const quote = await createQuote(backendCallId, {
+          currency: "EUR",
+          items,
+          tax_amount: 0,
+          total_amount: totalAmount,
+          availability_confirmed: call.terminalOutcome !== "declined",
+          inclusions: call.pitchDelivered ?? [],
+          exclusions: [],
+          terms: call.summary ?? null,
+          extraction_source: "transcript_parser",
+          extraction_confidence: call.confidence ?? null,
+        });
+        targetQuoteId = quote.id;
+        quoteTotalsRef.current[mover.id] = normalizeDecimal(quote.total_amount);
+        quoteIdMapRef.current = {
+          ...quoteIdMapRef.current,
+          [mover.id]: quote.id,
+          [call.id]: quote.id,
+        };
+        dispatch({
+          type: "SET_BACKEND_MAPS",
+          quoteIds: { [mover.id]: quote.id, [call.id]: quote.id },
+        });
+      }
+
+      const competingQuoteId = call.citedQuoteId
+        ? quoteIdMapRef.current[call.citedQuoteId]
+        : undefined;
+      const beforeTotal = quoteTotalsRef.current[mover.id];
+      const afterTotal = call.finalQuoteEur;
+      const canNegotiate = call.wave >= 2
+        && !negotiationCreatedRef.current
+        && !negotiationInFlightRef.current
+        && !!targetQuoteId
+        && !!competingQuoteId
+        && competingQuoteId !== targetQuoteId
+        && beforeTotal != null
+        && afterTotal != null
+        && afterTotal < beforeTotal;
+
+      if (canNegotiate) {
+        negotiationInFlightRef.current = true;
+        try {
+          await createNegotiation(backendCallId, {
+            leverage_type: "competing_quote",
+            leverage_description: `Used competing itemised quote ${competingQuoteId} during simulated wave ${call.wave}.`,
+            competing_quote_id: competingQuoteId,
+            before_total: beforeTotal,
+            requested_total: call.citedQuoteEur ?? null,
+            after_total: afterTotal,
+            outcome: "price_reduced",
+            before_terms: { source: "simulated_call", wave: 1 },
+            after_terms: { source: "simulated_call", wave: call.wave },
+          });
+          negotiationCreatedRef.current = true;
+          await rankProviders(jobId);
+          await generateRecommendation(jobId);
+          const details = await getJobDetails(jobId);
+          applyBackendDetails(details);
+        } finally {
+          negotiationInFlightRef.current = false;
+        }
+      }
+    });
+  }, [applyBackendDetails, runBackendOperation]);
+
   const completeOnboarding = useCallback((jobSpec: JobSpec) => {
     dispatch({ type: "COMPLETE_ONBOARDING", jobSpec });
     const email = state.user?.email;
@@ -475,7 +980,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         account.jobSpec = jobSpec;
       }
     }
-  }, [state.user]);
+    if (!USE_MOCK_DATA) void ensureBackendWorkflow(jobSpec);
+  }, [ensureBackendWorkflow, state.user]);
 
   const callMover = useCallback((
     id: string,
@@ -495,11 +1001,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       wave,
       cited?.totalEur ?? null,
       cited?.callId ?? null,
-      (partial, facts) => dispatch({ type: "UPSERT_CALL", call: partial, facts }),
+      (partial, facts) => {
+        dispatch({ type: "UPSERT_CALL", call: partial, facts });
+        if (partial.status === "completed") syncCompletedCall(mover, partial as Call);
+      },
     );
-  }, [state.jobSpec]);
+  }, [state.jobSpec, syncCompletedCall]);
 
-  const runWaves = useCallback(() => {
+  const startWaves = useCallback(() => {
     if (state.wavesRunning) return;
     if (!state.jobSpecReady) {
       dispatch({ type: "SET_JOB_SPEC_READY", ready: true });
@@ -508,7 +1017,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "SET_AGENT_PROFILE", profile: "caller" });
     dispatch({ type: "LOG_ACTIVITY", text: `Wave 1: gathering quotes for spec ${state.jobSpec.specHash}` });
 
-    const list = moversRef.current;
+    const list = USE_MOCK_DATA ? moversRef.current : moversRef.current.slice(0, 3);
+    const allowedIds = new Set(list.map(mover => mover.id));
     list.forEach((m, i) => {
       window.setTimeout(() => callMover(m.id, 1, null), i * 500);
     });
@@ -524,7 +1034,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       });
       dispatch({ type: "SET_AGENT_PROFILE", profile: "closer" });
       if (best) {
-        const targets = moversRef.current.filter(m => m.id !== best.moverId && m.quote);
+        const targets = moversRef.current.filter(m => allowedIds.has(m.id) && m.id !== best.moverId && m.quote);
         targets.forEach((m, i) => {
           window.setTimeout(() => callMover(m.id, 2, best), i * 600);
         });
@@ -537,7 +1047,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     window.setTimeout(() => {
       const best = bestValidQuote(moversRef.current);
       const top2 = moversRef.current
-        .filter(m => m.quote?.comparability === "valid")
+        .filter(m => allowedIds.has(m.id) && m.quote?.comparability === "valid")
         .sort((a, b) => a.quote!.totalEur - b.quote!.totalEur)
         .slice(0, 2);
       dispatch({ type: "LOG_ACTIVITY", text: "Wave 3: closing top 2 movers" });
@@ -557,6 +1067,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }, 8000);
     }, 18000);
   }, [state.wavesRunning, state.jobSpecReady, state.jobSpec, callMover]);
+
+  const runWaves = useCallback(() => {
+    if (state.wavesRunning || wavesStartingRef.current) return;
+    if (USE_MOCK_DATA) {
+      startWaves();
+      return;
+    }
+    wavesStartingRef.current = true;
+    void ensureBackendWorkflow(state.jobSpec).then(jobId => {
+      if (jobId) startWaves();
+    }).finally(() => {
+      wavesStartingRef.current = false;
+    });
+  }, [ensureBackendWorkflow, startWaves, state.jobSpec, state.wavesRunning]);
 
   const runMarketSearch = useCallback(() => {
     if (state.searching) return;
@@ -664,12 +1188,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       type: "LOG_ACTIVITY",
       text: `Job spec locked (${state.jobSpec.specHash}). Same brief on every call.`,
     });
-  }, [state.jobSpec.specHash]);
+    if (!USE_MOCK_DATA) void ensureBackendWorkflow(state.jobSpec);
+  }, [ensureBackendWorkflow, state.jobSpec]);
 
   const refreshRecommendation = useCallback(() => {
     dispatch({ type: "SET_RECOMMENDATION", rec: buildRecommendation(moversRef.current, state.jobSpec) });
     dispatch({ type: "SET_PHASE", phase: "close" });
-  }, [state.jobSpec]);
+    const jobId = activeJobIdRef.current;
+    if (!USE_MOCK_DATA && jobId && negotiationCreatedRef.current) {
+      void runBackendOperation(`refresh-recommendation:${jobId}`, async () => {
+        await rankProviders(jobId);
+        await generateRecommendation(jobId);
+        const details = await getJobDetails(jobId);
+        applyBackendDetails(details);
+      });
+    }
+  }, [applyBackendDetails, runBackendOperation, state.jobSpec]);
 
   return (
     <StoreContext.Provider value={{
