@@ -54,13 +54,13 @@ export default function AgentPerformance({
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="font-display text-2xl text-teal-950">Agent Performance</h1>
-        <p className="text-sm text-slate-500 mt-1">
+        <h1 className="font-display text-2xl text-zinc-100">Agent Performance</h1>
+        <p className="text-sm text-zinc-400 mt-1">
           Transparency into what your multi-agent coordinator actually did.
         </p>
       </div>
 
-      <div className="flex rounded-lg border border-slate-200 p-0.5 bg-white w-fit">
+      <div className="flex rounded-lg border border-zinc-700 p-0.5 bg-zinc-900 w-fit">
         {([
           ["metrics", "Metrics"],
           ["log", "Behavior Log"],
@@ -70,7 +70,7 @@ export default function AgentPerformance({
             key={id}
             type="button"
             onClick={() => setTab(id)}
-            className={`px-3 py-1.5 text-xs rounded-md ${tab === id ? "bg-teal-950 text-sand" : "text-slate-600"}`}
+            className={`px-3 py-1.5 text-xs rounded-md ${tab === id ? "bg-teal-950 text-sand" : "text-zinc-400"}`}
           >
             {label}
           </button>
@@ -82,7 +82,7 @@ export default function AgentPerformance({
           {stats.map(s => (
             <div key={s.label} className="card p-4">
               <div className="text-2xl font-semibold tabular-nums">{s.value}</div>
-              <div className="text-xs text-slate-500 mt-1">{s.label}</div>
+              <div className="text-xs text-zinc-400 mt-1">{s.label}</div>
             </div>
           ))}
         </div>
@@ -92,8 +92,8 @@ export default function AgentPerformance({
         <div className="card p-4">
           <ul className="space-y-2">
             {behaviorLog.map((text, i) => (
-              <li key={i} className="text-sm flex gap-2 text-slate-700">
-                <Check size={16} className="text-emerald-700 shrink-0 mt-0.5" />
+              <li key={i} className="text-sm flex gap-2 text-zinc-300">
+                <Check size={16} className="text-emerald-400 shrink-0 mt-0.5" />
                 {text}
               </li>
             ))}
@@ -114,12 +114,12 @@ export default function AgentPerformance({
                 className={`text-left rounded-xl border p-4 transition-all ${
                   selected
                     ? "border-teal-950 bg-teal-950 text-sand shadow-sm"
-                    : "border-slate-200 bg-white hover:border-teal-800/40"
+                    : "border-zinc-700 bg-zinc-900 hover:border-teal-800/40"
                 }`}
               >
                 <Icon size={18} />
                 <div className="mt-3 font-display text-lg">{profile.title}</div>
-                <p className={`text-xs mt-2 leading-relaxed ${selected ? "text-sand/85" : "text-slate-600"}`}>
+                <p className={`text-xs mt-2 leading-relaxed ${selected ? "text-sand/85" : "text-zinc-400"}`}>
                   {profile.behaviour}
                 </p>
               </button>

@@ -29,7 +29,7 @@ hack-nation-project/
 │   ├── main.py              # Minimal app today
 │   ├── pyproject.toml
 │   └── .venv/               # local only — gitignored
-├── frontend/                # Atlas Mission Control + 3D Universe
+├── frontend/                # Atlas Mission Control
 │   └── src/
 │       ├── types.ts         # Domain contracts (source of truth for shapes)
 │       ├── lib/store.tsx    # Client state (replace with API later)
@@ -319,7 +319,7 @@ Expand from here; keep `uv` as the package manager (`uv add <package>`, `uv sync
 | Area | Owner hint |
 |------|------------|
 | FastAPI, DB, auth, OpenAPI | Backend |
-| UI, 3D universe, mock UX | Frontend (`frontend/`) |
+| UI, Mission Control, mock UX | Frontend (`frontend/`) |
 | Voice agent / ElevenLabs | Backend + shared agent prompts |
 | Telephony / Twilio | Backend |
 | Vision inventory | Backend (UI already uploads client-side) |

@@ -17,19 +17,19 @@ export default function StatusStrip() {
   );
 
   const items = [
-    { icon: BadgeEuro, label: "Quotes gathered", value: quotes.length, tone: "teal" },
-    { icon: TrendingDown, label: "Market spread", value: min != null && max != null ? `€${min}–${max}` : "—", tone: "sky" },
-    { icon: PiggyBank, label: "Best quote", value: min != null ? `€${min}` : "—", tone: "emerald" },
+    { icon: BadgeEuro, label: "Quotes", value: quotes.length, tone: "teal" },
+    { icon: TrendingDown, label: "Price range", value: min != null && max != null ? `€${min}–${max}` : "—", tone: "sky" },
+    { icon: PiggyBank, label: "Best offer", value: min != null ? `€${min}` : "—", tone: "emerald" },
     { icon: Activity, label: "Est. savings", value: savings > 0 ? `€${savings}` : "—", tone: "amber" },
-    { icon: Phone, label: "Calls in progress", value: inProgress, tone: wavesRunning ? "amber" : "teal" },
-    { icon: Radar, label: searching || wavesRunning ? "Working…" : `Median €${vertical.marketMedianEur}`, value: searching || wavesRunning ? "…" : "OK", tone: searching || wavesRunning ? "amber" : "teal" },
+    { icon: Phone, label: "Active calls", value: inProgress, tone: wavesRunning ? "amber" : "teal" },
+    { icon: Radar, label: searching || wavesRunning ? "Working…" : "Market check", value: searching || wavesRunning ? "…" : `€${vertical.marketMedianEur}`, tone: searching || wavesRunning ? "amber" : "teal" },
   ];
 
   const toneClass: Record<string, string> = {
-    teal: "text-teal-900 bg-teal-950/5",
+    teal: "text-teal-900 bg-primary/10",
     sky: "text-sky-700 bg-sky-50",
     amber: "text-amber-700 bg-amber-50",
-    emerald: "text-emerald-700 bg-emerald-50",
+    emerald: "text-emerald-400 bg-emerald-950/50",
   };
 
   return (
@@ -40,7 +40,7 @@ export default function StatusStrip() {
             <Icon size={16} />
           </span>
           <div className="text-xl font-semibold mt-2 tabular-nums truncate">{value}</div>
-          <div className="text-xs text-slate-500">{label}</div>
+          <div className="text-xs text-zinc-400">{label}</div>
         </div>
       ))}
     </div>

@@ -45,16 +45,16 @@ export default function Welcome() {
         <p className="mt-8 text-5xl md:text-6xl font-semibold tracking-tight text-primary welcome-brand">
           atlas.ai
         </p>
-        <p className="mt-2 text-sm md:text-base font-medium text-slate-500">
+        <p className="mt-2 text-sm md:text-base font-medium text-zinc-400">
           One AI. One Move. Complete Visibility.
         </p>
 
-        <p className="mt-5 text-lg md:text-xl text-slate-600 leading-relaxed min-h-[5.5rem] welcome-copy">
+        <p className="mt-5 text-lg md:text-xl text-zinc-400 leading-relaxed min-h-[5.5rem] welcome-copy">
           {typed}
           <span className={`welcome-caret ${ready ? "opacity-0" : ""}`} aria-hidden>|</span>
         </p>
 
-        <p className={`mt-2 text-sm text-slate-400 transition-opacity duration-500 ${ready ? "opacity-100" : "opacity-0"}`}>
+        <p className={`mt-2 text-sm text-zinc-500 transition-opacity duration-500 ${ready ? "opacity-100" : "opacity-0"}`}>
           Hire a relocation manager — not another checklist
         </p>
 

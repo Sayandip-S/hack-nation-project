@@ -24,36 +24,36 @@ export default function QuoteDrawer({ moverId, onClose }: { moverId: string; onC
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end bg-black/20" onClick={onClose}>
-      <div className="w-full max-w-md bg-white h-full overflow-y-auto p-6" onClick={e => e.stopPropagation()}>
+      <div className="w-full max-w-md bg-zinc-900 h-full overflow-y-auto p-6" onClick={e => e.stopPropagation()}>
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-lg font-semibold">{m.companyName}</h2>
-            <p className="text-sm text-slate-500">{m.phone} · ★ {m.rating}</p>
+            <p className="text-sm text-zinc-400">{m.phone} · ★ {m.rating}</p>
           </div>
-          <button type="button" onClick={onClose}><X size={20} className="text-slate-400" /></button>
+          <button type="button" onClick={onClose}><X size={20} className="text-zinc-500" /></button>
         </div>
 
         <div className="flex items-center gap-2 mt-3 flex-wrap">
           {m.risks[0] && <RiskBadge label={m.risks[0].severity} />}
           {score != null && <span className="text-xs px-2 py-0.5 rounded-md bg-teal-950 text-sand">Score {score}</span>}
-          {isPick && <span className="text-xs px-2 py-0.5 rounded-md bg-[rgba(212,224,92,0.45)] text-teal-950">AI recommendation</span>}
+          {isPick && <span className="text-xs px-2 py-0.5 rounded-md bg-[rgba(212,224,92,0.45)] text-zinc-100">AI recommendation</span>}
         </div>
 
         {isPick && recommendation && (
-          <p className="mt-4 text-sm bg-teal-950/5 rounded-lg p-3 text-teal-950">{recommendation.why}</p>
+          <p className="mt-4 text-sm bg-primary/10 rounded-lg p-3 text-zinc-100">{recommendation.why}</p>
         )}
 
         {m.quote && (
-          <p className="mt-3 text-sm bg-slate-50 rounded-lg p-3">{m.quote.rationale}</p>
+          <p className="mt-3 text-sm bg-zinc-800/50 rounded-lg p-3">{m.quote.rationale}</p>
         )}
 
         <div className="grid grid-cols-2 gap-3 mt-4 text-sm">
-          <div className="bg-slate-50 rounded-lg p-3">
-            <div className="text-xs text-slate-400">Price</div>
+          <div className="bg-zinc-800/50 rounded-lg p-3">
+            <div className="text-xs text-zinc-500">Price</div>
             <div className="font-semibold text-xl">€{m.quote?.totalEur ?? "—"}</div>
           </div>
-          <div className="bg-slate-50 rounded-lg p-3">
-            <div className="text-xs text-slate-400">Reviews</div>
+          <div className="bg-zinc-800/50 rounded-lg p-3">
+            <div className="text-xs text-zinc-500">Reviews</div>
             <div className="font-semibold text-xl">{m.reviewCount}</div>
           </div>
         </div>
@@ -61,8 +61,8 @@ export default function QuoteDrawer({ moverId, onClose }: { moverId: string; onC
         <div className="mt-4 space-y-2">
           <div className="text-sm font-medium">Coverage & policies</div>
           {extras.map(e => (
-            <div key={e.label} className="flex justify-between text-sm border-b border-slate-50 py-1.5">
-              <span className="text-slate-500">{e.label}</span>
+            <div key={e.label} className="flex justify-between text-sm border-b border-zinc-800 py-1.5">
+              <span className="text-zinc-400">{e.label}</span>
               <span className="font-medium text-right max-w-[55%]">{e.value}</span>
             </div>
           ))}
@@ -85,13 +85,13 @@ export default function QuoteDrawer({ moverId, onClose }: { moverId: string; onC
           <div className="text-sm font-medium mb-1">Structured extraction</div>
           {m.facts.length
             ? m.facts.map(f => <FactRow key={f.id} fact={f} />)
-            : <p className="text-sm text-slate-400">Run a call wave to extract fees from the transcript.</p>}
+            : <p className="text-sm text-zinc-500">Run a call wave to extract fees from the transcript.</p>}
         </div>
 
         {call?.summary && (
           <div className="mt-4">
             <div className="text-sm font-medium mb-1">Call summary</div>
-            <p className="text-sm text-slate-600">{call.summary}</p>
+            <p className="text-sm text-zinc-400">{call.summary}</p>
           </div>
         )}
 

@@ -12,7 +12,7 @@ Frontend contributor: [RohanMallikarjun](https://github.com/RohanMallikarjun)
 
 | Piece | Stack | Port |
 |-------|--------|------|
-| **Frontend** | React 19 + Vite + Tailwind + React Three Fiber | `5173` |
+| **Frontend** | React 19 + Vite + Tailwind | `5173` |
 | **Backend** | FastAPI + uv + Uvicorn | `8000` |
 
 The UI currently runs on **in-browser mocks** (no API required). The backend health endpoint is ready for integration — see [BACKEND_SETUP.md](./BACKEND_SETUP.md).
@@ -57,14 +57,11 @@ Open **http://localhost:5173**
 ### Suggested click-path
 
 1. Welcome → Sign in with demo account  
-2. **Universe** home — 3D Earth, Maps pins, transit car  
+2. **Home** — Mission Control desk  
 3. **Inventory** — upload / camera photo survey  
 4. **Calls** — run quote waves  
 5. **Moving Companies** — ranking + comparison  
-6. Optional: Timeline, Budget, Analytics, Documents  
-
-Use **Demo** on the Universe HUD for the scripted wow sequence.  
-**2D** switches to the flat Mission Control desk.
+6. Optional: Timeline, Budget, Analytics, Documents
 
 ### Frontend scripts
 
@@ -138,8 +135,6 @@ When you wire the frontend to the API, enable CORS for `http://localhost:5173` (
 | Blank UI after big change | Hard refresh `Ctrl+Shift+R` |
 | `npm run build` fails | Run from `frontend/`; ensure Node 18+ |
 | Push 403 to GitHub | You need write access on the repo; accept collaborator invite |
-| 3D Earth texture missing | Needs network for Blue Marble texture URL (CDN) |
-
 ---
 
 ## 6. Project map
@@ -147,8 +142,7 @@ When you wire the frontend to the API, enable CORS for `http://localhost:5173` (
 ```
 frontend/src/
   pages/           Welcome, Auth, Onboarding, Dashboard
-  views/           Universe, Inventory, Timeline, Budget, …
-  universe/scene/  React Three Fiber Moving Universe
+  views/           Mission Control, Inventory, Timeline, Budget, …
   components/      Calls, quotes, photo capture, shell
   mock/            Seed JobSpec, movers, call engine, vision mock
   types.ts         Shared domain types (API should match these)

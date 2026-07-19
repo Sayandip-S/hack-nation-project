@@ -27,15 +27,15 @@ export default function AnalyticsView() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Analytics</h1>
-        <p className="text-sm text-slate-500 mt-1">Proof of atlas.ai&apos;s value as your relocation manager.</p>
+        <h1 className="text-2xl font-semibold text-zinc-100">Analytics</h1>
+        <p className="text-sm text-zinc-400 mt-1">Proof of atlas.ai&apos;s value as your relocation manager.</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {metrics.map(m => (
           <div key={m.label} className="card p-4">
-            <div className="text-2xl font-semibold font-metric text-slate-900">{m.value}</div>
-            <div className="text-xs text-slate-500 mt-1">{m.label}</div>
+            <div className="text-2xl font-semibold font-metric text-zinc-100">{m.value}</div>
+            <div className="text-xs text-zinc-400 mt-1">{m.label}</div>
           </div>
         ))}
       </div>
@@ -49,7 +49,7 @@ export default function AnalyticsView() {
                 className="w-full rounded-t-lg bg-primary/80"
                 style={{ height: `${b.h}%` }}
               />
-              <span className="text-[10px] text-slate-400 font-metric">{b.label}</span>
+              <span className="text-[10px] text-zinc-500 font-metric">{b.label}</span>
             </div>
           ))}
         </div>
@@ -57,16 +57,16 @@ export default function AnalyticsView() {
 
       <div className="grid sm:grid-cols-2 gap-3">
         <div className="card p-4">
-          <div className="text-xs text-slate-500 mb-1">Response rate</div>
+          <div className="text-xs text-zinc-400 mb-1">Response rate</div>
           <div className="text-xl font-semibold font-metric">78%</div>
-          <div className="mt-2 h-1.5 rounded-full bg-slate-100">
+          <div className="mt-2 h-1.5 rounded-full bg-zinc-800">
             <div className="h-full w-[78%] rounded-full bg-success" />
           </div>
         </div>
         <div className="card p-4">
-          <div className="text-xs text-slate-500 mb-1">Budget trend</div>
+          <div className="text-xs text-zinc-400 mb-1">Budget trend</div>
           <div className="text-xl font-semibold font-metric text-success">−€420</div>
-          <p className="text-xs text-slate-500 mt-1">vs first-pass quotes</p>
+          <p className="text-xs text-zinc-400 mt-1">vs first-pass quotes</p>
         </div>
       </div>
     </div>

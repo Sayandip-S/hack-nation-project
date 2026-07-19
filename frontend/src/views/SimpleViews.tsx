@@ -4,17 +4,48 @@ export function SettingsView() {
   const { user, jobSpec } = useStore();
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Settings</h1>
-        <p className="text-sm text-slate-500 mt-1">Account and active move defaults.</p>
+      <div className="card p-5 space-y-4">
+        <div>
+          <h2 className="text-sm font-semibold text-zinc-100">Profile</h2>
+          <p className="text-xs text-zinc-400 mt-0.5">Your account details for this move.</p>
+        </div>
+        <div className="space-y-3 text-sm">
+          <div className="flex justify-between gap-3">
+            <span className="text-zinc-400">Name</span>
+            <span className="text-zinc-100">{user?.name}</span>
+          </div>
+          <div className="flex justify-between gap-3">
+            <span className="text-zinc-400">Email</span>
+            <span className="text-zinc-100">{user?.email}</span>
+          </div>
+        </div>
       </div>
-      <div className="card p-4 space-y-3 text-sm">
-        <div className="flex justify-between gap-3"><span className="text-slate-500">Name</span><span>{user?.name}</span></div>
-        <div className="flex justify-between gap-3"><span className="text-slate-500">Email</span><span>{user?.email}</span></div>
-        <div className="flex justify-between gap-3"><span className="text-slate-500">Active move</span><span>{jobSpec.originCity} → {jobSpec.destCity}</span></div>
-        <div className="flex justify-between gap-3"><span className="text-slate-500">Move date</span><span className="font-metric">August 14</span></div>
-        <div className="flex justify-between gap-3"><span className="text-slate-500">Budget limit</span><span className="font-metric">€1800</span></div>
-        <div className="flex justify-between gap-3"><span className="text-slate-500">Principle</span><span>One AI. One Move. Complete Visibility.</span></div>
+
+      <div className="card p-5 space-y-4">
+        <div>
+          <h2 className="text-sm font-semibold text-zinc-100">Move defaults</h2>
+          <p className="text-xs text-zinc-400 mt-0.5">Active job preferences used by Atlas.</p>
+        </div>
+        <div className="space-y-3 text-sm">
+          <div className="flex justify-between gap-3">
+            <span className="text-zinc-400">Active move</span>
+            <span>{jobSpec.originCity} → {jobSpec.destCity}</span>
+          </div>
+          <div className="flex justify-between gap-3">
+            <span className="text-zinc-400">Move window</span>
+            <span className="font-metric text-right">
+              {jobSpec.dateWindow[0]} → {jobSpec.dateWindow[1]}
+            </span>
+          </div>
+          <div className="flex justify-between gap-3">
+            <span className="text-zinc-400">Services</span>
+            <span className="text-right max-w-[60%]">{jobSpec.services.join(", ")}</span>
+          </div>
+          <div className="flex justify-between gap-3">
+            <span className="text-zinc-400">Principle</span>
+            <span className="text-right">One AI. One Move. Complete Visibility.</span>
+          </div>
+        </div>
       </div>
     </div>
   );

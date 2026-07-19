@@ -28,23 +28,23 @@ export default function PriceLadder({ mover }: { mover: Mover }) {
       <div className="text-sm font-medium mb-2">
         Price movement{" "}
         {saved > 0 && <span className="text-emerald-600">(−€{saved})</span>}
-        {saved <= 0 && <span className="text-slate-400">(no drop yet)</span>}
+        {saved <= 0 && <span className="text-zinc-500">(no drop yet)</span>}
       </div>
       <div className="flex items-end gap-2 h-28">
         {steps.map((s, i) => (
           <div key={`${s.label}-${i}`} className="flex-1 flex flex-col items-center justify-end min-w-0">
             <div
-              className={`w-full rounded-t ${saved > 0 && i === steps.length - 1 ? "bg-teal-800" : "bg-slate-200"}`}
+              className={`w-full rounded-t ${saved > 0 && i === steps.length - 1 ? "bg-teal-800" : "bg-zinc-700"}`}
               style={{ height: `${((s.value - min) / (max - min || 1)) * 80 + 20}%` }}
               title={s.cited != null ? `Cited competing €${s.cited}` : undefined}
             />
-            <div className="text-[10px] text-slate-600 mt-1 font-medium">€{s.value}</div>
-            <div className="text-[9px] text-slate-400 text-center truncate w-full">{s.label}</div>
+            <div className="text-[10px] text-zinc-400 mt-1 font-medium">€{s.value}</div>
+            <div className="text-[9px] text-zinc-500 text-center truncate w-full">{s.label}</div>
           </div>
         ))}
       </div>
       {steps.some(s => s.cited != null) && (
-        <p className="text-[11px] text-slate-500 mt-2">
+        <p className="text-[11px] text-zinc-400 mt-2">
           Leverage cited a competing quote from a prior call — never invented.
         </p>
       )}

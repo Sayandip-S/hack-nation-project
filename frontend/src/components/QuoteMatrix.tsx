@@ -70,21 +70,21 @@ export default function QuoteMatrix() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Moving Companies</h1>
-          <p className="text-sm text-slate-500 mt-1">atlas.ai ranks providers — you approve the decision.</p>
+          <h1 className="text-2xl font-semibold text-zinc-100">Moving Companies</h1>
+          <p className="text-sm text-zinc-400 mt-1">atlas.ai ranks providers — you approve the decision.</p>
         </div>
-        <div className="flex rounded-xl border border-slate-200 p-0.5 bg-white">
+        <div className="flex rounded-xl border border-zinc-700 p-0.5 bg-zinc-900">
           <button
             type="button"
             onClick={() => setTab("cards")}
-            className={`px-3 py-1.5 text-xs rounded-[10px] ${tab === "cards" ? "bg-primary text-white" : "text-slate-600"}`}
+            className={`px-3 py-1.5 text-xs rounded-[10px] ${tab === "cards" ? "bg-primary text-white" : "text-zinc-400"}`}
           >
             Top Recommendations
           </button>
           <button
             type="button"
             onClick={() => { setTab("matrix"); refreshRecommendation(); }}
-            className={`px-3 py-1.5 text-xs rounded-[10px] ${tab === "matrix" ? "bg-primary text-white" : "text-slate-600"}`}
+            className={`px-3 py-1.5 text-xs rounded-[10px] ${tab === "matrix" ? "bg-primary text-white" : "text-zinc-400"}`}
           >
             Quote Comparison
           </button>
@@ -109,7 +109,7 @@ export default function QuoteMatrix() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-semibold text-slate-900">{m.companyName}</h2>
+                      <h2 className="text-lg font-semibold text-zinc-100">{m.companyName}</h2>
                       {isRec && m.quote && (
                         <span className="text-[10px] uppercase tracking-wide font-semibold px-2 py-0.5 rounded-md bg-primary text-white">
                           Recommended
@@ -122,14 +122,14 @@ export default function QuoteMatrix() {
                           key={si}
                           size={14}
                           fill={si < Math.round(m.rating) ? "currentColor" : "none"}
-                          className={si < Math.round(m.rating) ? "" : "text-slate-200"}
+                          className={si < Math.round(m.rating) ? "" : "text-zinc-600"}
                         />
                       ))}
-                      <span className="text-xs text-slate-500 ml-1 font-metric">{m.rating.toFixed(1)}</span>
+                      <span className="text-xs text-zinc-400 ml-1 font-metric">{m.rating.toFixed(1)}</span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs text-slate-500">Score</div>
+                    <div className="text-xs text-zinc-400">Score</div>
                     <div className="text-2xl font-semibold font-metric text-primary">
                       {score ?? "—"}
                     </div>
@@ -137,15 +137,15 @@ export default function QuoteMatrix() {
                 </div>
                 <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
                   <div>
-                    <div className="text-xs text-slate-500">Price</div>
+                    <div className="text-xs text-zinc-400">Price</div>
                     <div className="font-semibold font-metric">{m.quote ? `€${m.quote.totalEur}` : "Pending"}</div>
                   </div>
                   <div>
-                    <div className="text-xs text-slate-500">Insurance</div>
+                    <div className="text-xs text-zinc-400">Insurance</div>
                     <div className="font-medium">{m.quote ? (insured ? "Included" : "Limited") : "—"}</div>
                   </div>
                   <div>
-                    <div className="text-xs text-slate-500">Available</div>
+                    <div className="text-xs text-zinc-400">Available</div>
                     <div className="font-medium text-success">{m.quote ? "✓" : "—"}</div>
                   </div>
                 </div>
@@ -153,7 +153,7 @@ export default function QuoteMatrix() {
             );
           })}
           {!movers.some(m => m.quote) && (
-            <p className="text-sm text-slate-500 card p-4">
+            <p className="text-sm text-zinc-400 card p-4">
               No quotes yet. Ask atlas.ai to call moving companies, or open Calls.
             </p>
           )}
@@ -165,17 +165,17 @@ export default function QuoteMatrix() {
           <div className="card overflow-x-auto">
             <table className="w-full text-sm min-w-[560px]">
               <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="p-3 text-left text-slate-500 font-medium">Feature</th>
+                <tr className="border-b border-zinc-800">
+                  <th className="p-3 text-left text-zinc-400 font-medium">Feature</th>
                   {matrixMovers.map(m => (
-                    <th key={m.id} className="p-3 text-left font-semibold text-slate-900">{m.companyName}</th>
+                    <th key={m.id} className="p-3 text-left font-semibold text-zinc-100">{m.companyName}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {features.map(f => (
-                  <tr key={f.label} className="border-b border-slate-50">
-                    <td className="p-3 text-slate-500">{f.label}</td>
+                  <tr key={f.label} className="border-b border-zinc-800">
+                    <td className="p-3 text-zinc-400">{f.label}</td>
                     {matrixMovers.map(m => {
                       const v = f.render(m);
                       return (
@@ -192,7 +192,7 @@ export default function QuoteMatrix() {
             </table>
           </div>
           {pick?.quote && (
-            <div className="card p-4 text-sm leading-relaxed text-slate-700 bg-primary/[0.03]">
+            <div className="card p-4 text-sm leading-relaxed text-zinc-300 bg-primary/[0.03]">
               <span className="font-semibold text-primary">Recommendation: </span>
               {pick.companyName} offers the best overall value.
               {matrixMovers[1]?.quote && pick.quote.totalEur > (matrixMovers.find(x => x.id !== pick.id && x.quote)?.quote?.totalEur ?? pick.quote.totalEur) && (

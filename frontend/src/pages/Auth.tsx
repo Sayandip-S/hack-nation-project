@@ -95,18 +95,18 @@ export default function Auth() {
 
         <div className="card p-6">
           {mode !== "forgot" && (
-            <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-slate-100 mb-5">
+            <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-zinc-800 mb-5">
               <button
                 type="button"
                 onClick={goSignIn}
-                className={`rounded-lg py-2 text-sm font-medium transition-colors ${mode === "signin" ? "bg-white text-teal-950 shadow-sm" : "text-slate-500"}`}
+                className={`rounded-lg py-2 text-sm font-medium transition-colors ${mode === "signin" ? "bg-zinc-700 text-zinc-100 shadow-sm" : "text-zinc-400"}`}
               >
                 Sign in
               </button>
               <button
                 type="button"
                 onClick={() => { setMode("signup"); setEmail(""); setPassword(""); setError(""); setInfo(""); }}
-                className={`rounded-lg py-2 text-sm font-medium transition-colors ${mode === "signup" ? "bg-white text-teal-950 shadow-sm" : "text-slate-500"}`}
+                className={`rounded-lg py-2 text-sm font-medium transition-colors ${mode === "signup" ? "bg-zinc-700 text-zinc-100 shadow-sm" : "text-zinc-400"}`}
               >
                 Create account
               </button>
@@ -126,11 +126,11 @@ export default function Auth() {
           <form onSubmit={submit} className="space-y-3">
             {mode === "signup" && (
               <label className="block text-sm">
-                <span className="text-slate-500">Name</span>
+                <span className="text-zinc-400">Name</span>
                 <input
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2.5 outline-none focus:border-teal-800/40"
+                  className="mt-1 w-full border border-zinc-700 rounded-lg px-3 py-2.5 outline-none focus:border-teal-800/40"
                   placeholder="Your name"
                   autoComplete="name"
                 />
@@ -138,13 +138,13 @@ export default function Auth() {
             )}
 
             <label className="block text-sm">
-              <span className="text-slate-500">Email</span>
+              <span className="text-zinc-400">Email</span>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2.5 outline-none focus:border-teal-800/40"
+                className="mt-1 w-full border border-zinc-700 rounded-lg px-3 py-2.5 outline-none focus:border-teal-800/40"
                 placeholder="you@email.com"
                 autoComplete="email"
               />
@@ -152,14 +152,14 @@ export default function Auth() {
 
             {mode !== "forgot" && (
               <label className="block text-sm">
-                <span className="text-slate-500">Password</span>
+                <span className="text-zinc-400">Password</span>
                 <input
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2.5 outline-none focus:border-teal-800/40"
+                  className="mt-1 w-full border border-zinc-700 rounded-lg px-3 py-2.5 outline-none focus:border-teal-800/40"
                   placeholder="••••••••"
                   autoComplete={mode === "signin" ? "current-password" : "new-password"}
                 />
@@ -168,14 +168,14 @@ export default function Auth() {
 
             {mode === "forgot" && resetReady && (
               <label className="block text-sm">
-                <span className="text-slate-500">New password</span>
+                <span className="text-zinc-400">New password</span>
                 <input
                   type="password"
                   value={newPassword}
                   onChange={e => setNewPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="mt-1 w-full border border-slate-200 rounded-lg px-3 py-2.5 outline-none focus:border-teal-800/40"
+                  className="mt-1 w-full border border-zinc-700 rounded-lg px-3 py-2.5 outline-none focus:border-teal-800/40"
                   placeholder="••••••••"
                   autoComplete="new-password"
                 />
@@ -184,12 +184,12 @@ export default function Auth() {
 
             {mode === "signin" && (
               <div className="flex items-center justify-between gap-3 pt-1">
-                <label className="inline-flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none">
+                <label className="inline-flex items-center gap-2 text-sm text-zinc-400 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={keepLoggedIn}
                     onChange={e => setKeepLoggedIn(e.target.checked)}
-                    className="rounded border-slate-300 text-teal-900 focus:ring-teal-800/30"
+                    className="rounded border-zinc-600 text-teal-900 focus:ring-teal-800/30"
                   />
                   Keep me logged in
                 </label>
@@ -204,7 +204,7 @@ export default function Auth() {
             )}
 
             {error && <p className="text-sm text-rose-600">{error}</p>}
-            {info && <p className="text-sm text-teal-900 bg-teal-950/5 rounded-lg px-3 py-2">{info}</p>}
+            {info && <p className="text-sm text-teal-900 bg-primary/10 rounded-lg px-3 py-2">{info}</p>}
 
             <button
               type="submit"

@@ -1,83 +1,90 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppShell from "../components/AppShell";
-import AgentPanel from "../components/AgentPanel";
-import CallBoard from "../components/CallBoard";
-import QuoteMatrix from "../components/QuoteMatrix";
 import MissionControl from "../views/MissionControl";
-import UniverseView from "../views/UniverseView";
-import InventoryView from "../views/InventoryView";
-import TimelineView from "../views/TimelineView";
-import BudgetView from "../views/BudgetView";
-import AnalyticsView from "../views/AnalyticsView";
+import EstimatorView from "../views/EstimatorView";
+import CallerView from "../views/CallerView";
+import CloserView from "../views/CloserView";
 import DocumentsView from "../views/DocumentsView";
+import AgentBehaviorView from "../views/AgentBehaviorView";
+import SummaryView from "../views/SummaryView";
 import { SettingsView } from "../views/SimpleViews";
+import { useAgentConversation } from "../lib/agentConversation";
 import { useStore } from "../lib/store";
 import type { NavId } from "../lib/nav";
+import type { PhaseId } from "../types";
+
+const phaseForNav: Partial<Record<NavId, PhaseId>> = {
+  estimator: "intake",
+  caller: "calls",
+  closer: "close",
+};
+
+const PAGE_TITLE: Partial<Record<NavId, string>> = {
+  dashboard: "Home",
+  estimator: "Estimator",
+  caller: "Caller",
+  closer: "Closer",
+  agent: "Agent",
+  summary: "Summary",
+  evidence: "Documents",
+  settings: "Settings",
+};
 
 export default function Dashboard() {
   const { user, signOut, setPhase, setAgentProfile } = useStore();
+  const { pendingNavigate, clearPendingNavigate, endSession } = useAgentConversation();
   const nav = useNavigate();
   const [section, setSection] = useState<NavId>("dashboard");
-  const [flatDesk, setFlatDesk] = useState(false);
 
   const go = (id: NavId) => {
     setSection(id);
-    if (id === "dashboard") setFlatDesk(false);
-    if (id === "companies" || id === "calls") {
-      setAgentProfile("caller");
-      setPhase("calls");
+    const phase = phaseForNav[id];
+    if (phase) {
+      setPhase(phase);
+      setAgentProfile(
+        phase === "intake" ? "estimator" : phase === "calls" ? "caller" : "closer",
+      );
     }
-    if (id === "inventory" || id === "timeline") {
-      setAgentProfile("estimator");
-      setPhase("intake");
-    }
+    if (id !== "dashboard") endSession();
   };
 
-  const immersive = section === "dashboard" && !flatDesk;
+  useEffect(() => {
+    if (!pendingNavigate) return;
+    const t = window.setTimeout(() => {
+      go(pendingNavigate);
+      clearPendingNavigate();
+    }, 700);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to pendingNavigate
+  }, [pendingNavigate, clearPendingNavigate]);
+
+  const shellActive: NavId =
+    section === "estimator" || section === "caller" || section === "closer"
+      ? "agent"
+      : section;
 
   return (
     <AppShell
-      active={section}
+      active={shellActive}
+      pageTitle={PAGE_TITLE[section]}
       onNavigate={go}
       userName={user?.name}
       onSignOut={() => { signOut(); nav("/auth"); }}
-      immersive={immersive}
     >
-      {section === "dashboard" && (
-        flatDesk ? (
-          <div className="space-y-4">
-            <button
-              type="button"
-              onClick={() => setFlatDesk(false)}
-              className="text-sm text-primary font-medium hover:underline"
-            >
-              ← Back to Moving Universe
-            </button>
-            <MissionControl onNavigate={go} />
-          </div>
-        ) : (
-          <UniverseView onNavigate={go} onOpenFlat={() => setFlatDesk(true)} />
-        )
+      {section === "dashboard" && <MissionControl onNavigate={go} />}
+      {section === "estimator" && (
+        <EstimatorView onBack={() => go("dashboard")} onOpenCaller={() => go("caller")} />
       )}
-      {section === "assistant" && <AgentPanel onNavigate={go} variant="hero" />}
-      {section === "timeline" && <TimelineView />}
-      {section === "inventory" && <InventoryView />}
-      {section === "companies" && <QuoteMatrix />}
-      {section === "calls" && (
-        <div className="space-y-4">
-          <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Calls</h1>
-            <p className="text-sm text-slate-500 mt-1">
-              Every atlas.ai call — transcript, audio, extraction, follow-ups.
-            </p>
-          </div>
-          <CallBoard />
-        </div>
+      {section === "caller" && (
+        <CallerView onBack={() => go("dashboard")} onOpenEstimator={() => go("estimator")} />
       )}
-      {section === "budget" && <BudgetView />}
-      {section === "documents" && <DocumentsView />}
-      {section === "analytics" && <AnalyticsView />}
+      {section === "closer" && (
+        <CloserView onBack={() => go("dashboard")} onOpenCaller={() => go("caller")} />
+      )}
+      {section === "agent" && <AgentBehaviorView onNavigate={go} />}
+      {section === "summary" && <SummaryView />}
+      {section === "evidence" && <DocumentsView />}
       {section === "settings" && <SettingsView />}
     </AppShell>
   );

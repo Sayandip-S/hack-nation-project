@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     frontend_origins: Annotated[list[str], NoDecode] = [
         "http://localhost:3000",
         "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
     ]
     upload_dir: Path = Path("uploads")
     max_upload_size_mb: int = Field(default=10, gt=0)

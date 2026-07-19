@@ -57,6 +57,8 @@ interface State {
   voiceLog: VoiceTurn[];
   voiceStep: number;
   jobSpecReady: boolean;
+  /** Learned behavioural lines from Home chat — appended to every call pitch. */
+  callGuidelines: string[];
   recommendation: DealRecommendation | null;
   wavesRunning: boolean;
   analyzingPhotos: boolean;
@@ -77,6 +79,7 @@ interface BackendHydration {
   providerIdMap: Record<string, string>;
   providerCallIdMap: Record<string, string>;
   quoteIdMap: Record<string, string>;
+  callGuidelines?: string[];
 }
 
 type Action =
@@ -99,6 +102,7 @@ type Action =
   | { type: "ADD_VOICE_TURN"; turn: VoiceTurn }
   | { type: "SET_VOICE_STEP"; step: number }
   | { type: "SET_JOB_SPEC_READY"; ready: boolean }
+  | { type: "SET_CALL_GUIDELINES"; guidelines: string[] }
   | { type: "SET_RECOMMENDATION"; rec: DealRecommendation | null }
   | { type: "SET_WAVES_RUNNING"; running: boolean }
   | { type: "SET_ACTIVE_JOB"; jobId: string | null }
@@ -337,6 +341,7 @@ function reducer(state: State, action: Action): State {
         voiceLog: [],
         voiceStep: 0,
         jobSpecReady: preserveBackend ? state.jobSpecReady : action.onboarded,
+        callGuidelines: preserveBackend ? state.callGuidelines : [],
         recommendation: preserveBackend ? state.recommendation : null,
         wavesRunning: false,
         analyzingPhotos: false,
@@ -360,6 +365,7 @@ function reducer(state: State, action: Action): State {
         voiceLog: [],
         voiceStep: 0,
         jobSpecReady: false,
+        callGuidelines: [],
         recommendation: null,
         wavesRunning: false,
         analyzingPhotos: false,
@@ -383,6 +389,7 @@ function reducer(state: State, action: Action): State {
         voiceLog: [],
         voiceStep: 0,
         jobSpecReady: false,
+        callGuidelines: [],
         recommendation: null,
         wavesRunning: false,
         analyzingPhotos: false,
@@ -508,6 +515,8 @@ function reducer(state: State, action: Action): State {
       return { ...state, voiceStep: action.step };
     case "SET_JOB_SPEC_READY":
       return { ...state, jobSpecReady: action.ready };
+    case "SET_CALL_GUIDELINES":
+      return { ...state, callGuidelines: action.guidelines };
     case "SET_RECOMMENDATION":
       return { ...state, recommendation: action.rec };
     case "SET_WAVES_RUNNING":
@@ -536,9 +545,11 @@ function reducer(state: State, action: Action): State {
     case "HYDRATE_BACKEND": {
       const hydration = action.hydration;
       const perf = recomputePerf(hydration.movers, state.perf.activity);
+      const { callGuidelines: hydratedGuidelines, ...rest } = hydration;
       return {
         ...state,
-        ...hydration,
+        ...rest,
+        callGuidelines: hydratedGuidelines ?? state.callGuidelines,
         perf,
         backendError: null,
       };
@@ -571,6 +582,7 @@ interface Ctx extends State {
   addDocument: (type: IntakeDocument["type"], name: string) => void;
   advanceVoiceInterview: (answer: string) => void;
   finalizeIntake: () => void;
+  setCallGuidelines: (guidelines: string[]) => void;
   negotiateMover: (moverId: string) => void;
   refreshRecommendation: () => void;
   ingestInventoryMedia: (files: FileList | File[], source: "upload" | "camera") => Promise<void>;
@@ -637,6 +649,7 @@ function buildInitialState(_accounts: AccountRecord[]): State {
     voiceLog: [],
     voiceStep: 0,
     jobSpecReady: account?.onboarded ?? false,
+    callGuidelines: [],
     recommendation: null,
     wavesRunning: false,
     analyzingPhotos: false,
@@ -1005,13 +1018,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         dispatch({ type: "UPSERT_CALL", call: partial, facts });
         if (partial.status === "completed") syncCompletedCall(mover, partial as Call);
       },
+      state.callGuidelines,
     );
-  }, [state.jobSpec, syncCompletedCall]);
+  }, [state.callGuidelines, state.jobSpec, syncCompletedCall]);
 
   const startWaves = useCallback(() => {
     if (state.wavesRunning) return;
     if (!state.jobSpecReady) {
-      dispatch({ type: "SET_JOB_SPEC_READY", ready: true });
+      dispatch({
+        type: "LOG_ACTIVITY",
+        text: "Calls blocked — confirm the move brief in The Estimator first.",
+      });
+      return;
     }
     dispatch({ type: "SET_WAVES_RUNNING", running: true });
     dispatch({ type: "SET_AGENT_PROFILE", profile: "caller" });
@@ -1063,13 +1081,23 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           type: "SET_RECOMMENDATION",
           rec: buildRecommendation(moversRef.current, state.jobSpec),
         });
-        dispatch({ type: "SET_PHASE", phase: "close" });
+        dispatch({
+          type: "LOG_ACTIVITY",
+          text: "Quote waves finished — open The Closer to negotiate and pick a deal.",
+        });
       }, 8000);
     }, 18000);
   }, [state.wavesRunning, state.jobSpecReady, state.jobSpec, callMover]);
 
   const runWaves = useCallback(() => {
     if (state.wavesRunning || wavesStartingRef.current) return;
+    if (!state.jobSpecReady) {
+      dispatch({
+        type: "LOG_ACTIVITY",
+        text: "Calls blocked — confirm the move brief in The Estimator first.",
+      });
+      return;
+    }
     if (USE_MOCK_DATA) {
       startWaves();
       return;
@@ -1080,7 +1108,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }).finally(() => {
       wavesStartingRef.current = false;
     });
-  }, [ensureBackendWorkflow, startWaves, state.jobSpec, state.wavesRunning]);
+  }, [ensureBackendWorkflow, startWaves, state.jobSpec, state.jobSpecReady, state.wavesRunning]);
 
   const runMarketSearch = useCallback(() => {
     if (state.searching) return;
@@ -1183,17 +1211,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const finalizeIntake = useCallback(() => {
     dispatch({ type: "SET_JOB_SPEC_READY", ready: true });
-    dispatch({ type: "SET_PHASE", phase: "calls" });
     dispatch({
       type: "LOG_ACTIVITY",
-      text: `Job spec locked (${state.jobSpec.specHash}). Same brief on every call.`,
+      text: `Job spec locked (${state.jobSpec.specHash}). Same brief on every call. Open The Caller when ready.`,
     });
     if (!USE_MOCK_DATA) void ensureBackendWorkflow(state.jobSpec);
   }, [ensureBackendWorkflow, state.jobSpec]);
 
+  const setCallGuidelines = useCallback((guidelines: string[]) => {
+    dispatch({ type: "SET_CALL_GUIDELINES", guidelines });
+  }, []);
+
   const refreshRecommendation = useCallback(() => {
     dispatch({ type: "SET_RECOMMENDATION", rec: buildRecommendation(moversRef.current, state.jobSpec) });
-    dispatch({ type: "SET_PHASE", phase: "close" });
     const jobId = activeJobIdRef.current;
     if (!USE_MOCK_DATA && jobId && negotiationCreatedRef.current) {
       void runBackendOperation(`refresh-recommendation:${jobId}`, async () => {
@@ -1219,7 +1249,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const meta = vertical.agentProfiles.find(p => p.id === profile);
         dispatch({ type: "LOG_ACTIVITY", text: `Behavioural profile → ${meta?.title ?? profile}` });
       },
-      addDocument, advanceVoiceInterview, finalizeIntake, negotiateMover, refreshRecommendation,
+      addDocument, advanceVoiceInterview, finalizeIntake, setCallGuidelines,
+      negotiateMover, refreshRecommendation,
       ingestInventoryMedia,
     }}>
       {children}

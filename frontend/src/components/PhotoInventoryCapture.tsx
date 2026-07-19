@@ -27,8 +27,8 @@ export default function PhotoInventoryCapture() {
             <Sparkles size={18} />
           </span>
           <div>
-            <h2 className="text-sm font-semibold text-slate-900">Photo survey</h2>
-            <p className="text-sm text-slate-500 mt-0.5">
+            <h2 className="text-sm font-semibold text-zinc-100">Photo survey</h2>
+            <p className="text-sm text-zinc-400 mt-0.5">
               Upload room photos or use your camera. atlas.ai estimates furniture and volume,
               then uses that inventory when calling movers.
             </p>
@@ -40,7 +40,7 @@ export default function PhotoInventoryCapture() {
             type="button"
             disabled={analyzingPhotos}
             onClick={() => uploadRef.current?.click()}
-            className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-3.5 text-sm font-medium text-slate-800 hover:border-primary/40 hover:bg-primary/5 disabled:opacity-50"
+            className="flex items-center justify-center gap-2 rounded-xl border border-zinc-700 px-4 py-3.5 text-sm font-medium text-zinc-200 hover:border-primary/40 hover:bg-primary/15 disabled:opacity-50"
           >
             <ImagePlus size={18} className="text-primary" />
             Upload images
@@ -89,25 +89,25 @@ export default function PhotoInventoryCapture() {
 
       {inventoryPhotos.length > 0 && (
         <div className="card p-4">
-          <div className="text-sm font-semibold text-slate-900 mb-3">
+          <div className="text-sm font-semibold text-zinc-100 mb-3">
             Surveyed rooms ({inventoryPhotos.length})
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             {inventoryPhotos.map(p => (
-              <div key={p.id} className="rounded-xl border border-slate-100 overflow-hidden bg-slate-50">
+              <div key={p.id} className="rounded-xl border border-zinc-800 overflow-hidden bg-zinc-800/50">
                 <img src={p.previewUrl} alt={p.roomGuess} className="w-full h-36 object-cover" />
                 <div className="p-3">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-medium text-slate-900">{p.roomGuess}</span>
-                    <span className="text-[10px] uppercase tracking-wide text-slate-400">
+                    <span className="text-sm font-medium text-zinc-100">{p.roomGuess}</span>
+                    <span className="text-[10px] uppercase tracking-wide text-zinc-500">
                       {p.source}
                     </span>
                   </div>
                   <ul className="mt-2 space-y-1">
                     {p.detectedItems.map(d => (
-                      <li key={d.item} className="text-xs text-slate-600 flex justify-between gap-2">
+                      <li key={d.item} className="text-xs text-zinc-400 flex justify-between gap-2">
                         <span>{d.qty}× {d.item}</span>
-                        <span className="font-metric text-slate-400">{Math.round(d.confidence * 100)}%</span>
+                        <span className="font-metric text-zinc-500">{Math.round(d.confidence * 100)}%</span>
                       </li>
                     ))}
                   </ul>

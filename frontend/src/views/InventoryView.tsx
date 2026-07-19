@@ -46,8 +46,8 @@ export default function InventoryView() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Inventory</h1>
-        <p className="text-sm text-slate-500 mt-1">
+        <h1 className="text-2xl font-semibold text-zinc-100">Inventory</h1>
+        <p className="text-sm text-zinc-400 mt-1">
           Capture rooms with photos or camera — atlas.ai estimates volume and briefs movers with it.
         </p>
       </div>
@@ -55,7 +55,7 @@ export default function InventoryView() {
       <PhotoInventoryCapture />
 
       <div className="card p-4">
-        <p className="text-sm text-slate-600 mb-3">
+        <p className="text-sm text-zinc-400 mb-3">
           Or describe aloud: “king-size bed, two desks, sofa, piano, 30 boxes.”
         </p>
         <div className="flex gap-2">
@@ -66,10 +66,10 @@ export default function InventoryView() {
             value={utterance}
             onChange={e => setUtterance(e.target.value)}
             onKeyDown={e => e.key === "Enter" && ingest()}
-            className="flex-1 border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-primary/50"
+            className="flex-1 border border-zinc-700 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-primary/50"
             placeholder="Describe your inventory…"
           />
-          <button type="button" onClick={ingest} className="p-3 rounded-xl border border-slate-200">
+          <button type="button" onClick={ingest} className="p-3 rounded-xl border border-zinc-700">
             <Send size={16} />
           </button>
         </div>
@@ -83,21 +83,21 @@ export default function InventoryView() {
           { label: "Truck Recommendation", value: truck },
         ].map(s => (
           <div key={s.label} className="card p-4">
-            <div className="text-xl font-semibold font-metric text-slate-900">{s.value}</div>
-            <div className="text-xs text-slate-500 mt-1">{s.label}</div>
+            <div className="text-xl font-semibold font-metric text-zinc-100">{s.value}</div>
+            <div className="text-xs text-zinc-400 mt-1">{s.label}</div>
           </div>
         ))}
       </div>
 
       <div className="card p-4">
-        <div className="text-sm font-semibold text-slate-900 mb-1">What movers will hear</div>
-        <p className="text-xs text-slate-500 mb-3">
+        <div className="text-sm font-semibold text-zinc-100 mb-1">What movers will hear</div>
+        <p className="text-xs text-zinc-400 mb-3">
           Identical pitch on every call — includes your photo survey estimate.
         </p>
-        <p className="text-sm text-slate-700 mb-3 font-metric text-xs sm:text-sm break-words">
+        <p className="text-sm text-zinc-300 mb-3 font-metric text-xs sm:text-sm break-words">
           {inventorySummary(jobSpec)}
         </p>
-        <ul className="space-y-2 text-sm text-slate-600">
+        <ul className="space-y-2 text-sm text-zinc-400">
           {pitch.map((line, i) => (
             <li key={i} className="pl-3 border-l-2 border-primary/30">{line}</li>
           ))}
@@ -105,10 +105,10 @@ export default function InventoryView() {
       </div>
 
       <div className="card p-4">
-        <div className="font-semibold text-sm mb-2 text-slate-900">Current inventory list</div>
+        <div className="font-semibold text-sm mb-2 text-zinc-100">Current inventory list</div>
         <ul className="grid sm:grid-cols-2 gap-1.5">
           {jobSpec.inventory.map(i => (
-            <li key={i.item} className="text-sm text-slate-600 flex gap-2">
+            <li key={i.item} className="text-sm text-zinc-400 flex gap-2">
               <span className="text-success">✓</span> {i.qty}× {i.item}
             </li>
           ))}

@@ -45,17 +45,18 @@ export default function DocumentsView() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Documents</h1>
-        <p className="text-sm text-slate-500 mt-1">Everything related to this move — searchable.</p>
+        <p className="text-sm text-zinc-400">
+          Contracts, invoices, photos, and call transcripts for this move.
+        </p>
       </div>
 
       <div className="relative">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
         <input
           value={q}
           onChange={e => setQ(e.target.value)}
           placeholder="Search contracts, invoices, transcripts…"
-          className="w-full border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 text-sm outline-none focus:border-primary/50 bg-white"
+          className="w-full border border-zinc-700 rounded-xl pl-9 pr-3 py-2.5 text-sm outline-none focus:border-primary/50 bg-zinc-900"
         />
       </div>
 
@@ -63,7 +64,7 @@ export default function DocumentsView() {
         <button
           type="button"
           onClick={() => setCat(null)}
-          className={`text-xs px-3 py-1.5 rounded-full border ${!cat ? "bg-primary text-white border-primary" : "border-slate-200 text-slate-600"}`}
+          className={`text-xs px-3 py-1.5 rounded-full border ${!cat ? "bg-primary text-white border-primary" : "border-zinc-700 text-zinc-400"}`}
         >
           All
         </button>
@@ -72,24 +73,24 @@ export default function DocumentsView() {
             key={c}
             type="button"
             onClick={() => setCat(c)}
-            className={`text-xs px-3 py-1.5 rounded-full border ${cat === c ? "bg-primary text-white border-primary" : "border-slate-200 text-slate-600"}`}
+            className={`text-xs px-3 py-1.5 rounded-full border ${cat === c ? "bg-primary text-white border-primary" : "border-zinc-700 text-zinc-400"}`}
           >
             {c}
           </button>
         ))}
       </div>
 
-      <div className="card divide-y divide-slate-100">
+      <div className="card divide-y divide-zinc-800">
         {docs.map(d => (
           <div key={d.name + d.cat} className="px-4 py-3 flex justify-between gap-3">
             <div>
-              <div className="text-sm font-medium text-slate-900">{d.name}</div>
-              <div className="text-xs text-slate-500 mt-0.5">{d.note}</div>
+              <div className="text-sm font-medium text-zinc-100">{d.name}</div>
+              <div className="text-xs text-zinc-400 mt-0.5">{d.note}</div>
             </div>
-            <span className="text-[10px] uppercase tracking-wide text-slate-400 shrink-0">{d.cat}</span>
+            <span className="text-[10px] uppercase tracking-wide text-zinc-500 shrink-0">{d.cat}</span>
           </div>
         ))}
-        {!docs.length && <p className="p-4 text-sm text-slate-400">No documents match.</p>}
+        {!docs.length && <p className="p-4 text-sm text-zinc-500">No documents match.</p>}
       </div>
     </div>
   );

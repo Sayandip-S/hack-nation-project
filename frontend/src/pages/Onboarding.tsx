@@ -65,8 +65,10 @@ export default function Onboarding() {
         <div className="card p-8 w-full max-w-lg relative z-10">
           <p className="text-primary text-sm font-medium mb-1">atlas.ai · Confirm job spec</p>
           <h1 className="text-xl font-medium mb-2">This is exactly what I&apos;ll tell every company</h1>
-          <p className="text-xs text-slate-500 mb-4 font-mono">spec {spec.specHash}</p>
-          <ul className="text-sm space-y-2 text-slate-700 mb-6">
+          <p className="text-xs text-zinc-400 mb-4">
+            Review your brief, then open the dashboard. You can start calling from The Caller when ready.
+          </p>
+          <ul className="text-sm space-y-2 text-zinc-300 mb-6">
             <li><strong>Route:</strong> {spec.originCity} ({spec.originStairs} fl) → {spec.destCity} ({spec.destStairs} fl)</li>
             <li><strong>Distance:</strong> {spec.distanceMiles} mi · long carry {spec.longCarryFt} ft</li>
             <li><strong>Inventory:</strong> {inventorySummary(spec)}</li>
@@ -76,7 +78,7 @@ export default function Onboarding() {
           <button onClick={lockIn} className="w-full bg-teal-950 text-sand rounded-lg py-2.5 text-sm font-medium">
             Confirm — freeze spec & open dashboard
           </button>
-          <button onClick={() => { setConfirm(false); setI(0); }} className="w-full mt-2 text-sm text-slate-500">
+          <button onClick={() => { setConfirm(false); setI(0); }} className="w-full mt-2 text-sm text-zinc-400">
             Edit answers
           </button>
         </div>
@@ -88,7 +90,7 @@ export default function Onboarding() {
     <div className="welcome-stage min-h-screen flex items-center justify-center p-6">
       <div className="card p-8 w-full max-w-lg relative z-10">
         <p className="text-primary text-sm font-medium mb-1">atlas.ai · Job Spec</p>
-        <div className="text-xs text-slate-400 mb-2">Step {i + 1} of {steps.length}</div>
+        <div className="text-xs text-zinc-500 mb-2">Step {i + 1} of {steps.length}</div>
         <h1 className="text-xl font-medium mb-5">{step.q}</h1>
         <input
           autoFocus
@@ -96,7 +98,7 @@ export default function Onboarding() {
           onChange={e => setVal(e.target.value)}
           onKeyDown={e => e.key === "Enter" && next()}
           type={step.type === "number" ? "number" : "text"}
-          className="w-full border border-slate-200 rounded-lg px-4 py-2.5 outline-none focus:border-slate-400"
+          className="w-full border border-zinc-700 rounded-lg px-4 py-2.5 outline-none focus:border-zinc-500"
         />
         <button onClick={next} className="mt-6 w-full bg-teal-950 text-sand rounded-lg py-2.5 text-sm">
           {i + 1 < steps.length ? "Next" : "Review job spec"}

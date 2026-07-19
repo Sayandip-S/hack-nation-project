@@ -12,9 +12,9 @@ export function personaForMover(m: Mover): Persona {
   return "cooperative";
 }
 
-export function buildPitch(spec: JobSpec): string[] {
+export function buildPitch(spec: JobSpec, callGuidelines: string[] = []): string[] {
   const inv = inventorySummary(spec);
-  return vertical.callScriptTemplate.map(line =>
+  const lines = vertical.callScriptTemplate.map(line =>
     line
       .replace("{{originCity}}", spec.originCity)
       .replace("{{originStairs}}", String(spec.originStairs))
@@ -27,6 +27,11 @@ export function buildPitch(spec: JobSpec): string[] {
       .replace("{{dateEnd}}", spec.dateWindow[1])
       .replace("{{services}}", spec.services.join(", ")),
   );
+  for (const instruction of callGuidelines) {
+    const trimmed = instruction.trim();
+    if (trimmed) lines.push(`Customer instruction for this call: ${trimmed}`);
+  }
+  return lines;
 }
 
 /** Base totals before negotiation (wave 1). */
@@ -167,10 +172,11 @@ export function runCall(
   citedQuoteEur: number | null,
   citedQuoteId: string | null,
   onUpdate: (partial: Partial<Call> & { id: string; moverId: string }, facts: Fact[]) => void,
+  callGuidelines: string[] = [],
 ): () => void {
   const persona = personaForMover(mover);
   const id = `call-${mover.id}-w${wave}-${Date.now()}`;
-  const pitch = buildPitch(spec);
+  const pitch = buildPitch(spec, callGuidelines);
   const open = baseQuoteEur(persona);
   const drop = concessionEur(persona, wave);
   const final = open - drop;
