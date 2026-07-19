@@ -31,6 +31,7 @@ from app.models.enums import (
     NegotiationOutcome,
     ProviderCallStatus,
     QuoteExtractionSource,
+    RecommendationStatus,
     SpecificationStatus,
 )
 
@@ -105,6 +106,12 @@ class Job(Base):
     )
     negotiations: Mapped[list["Negotiation"]] = relationship(
         back_populates="job", cascade="all, delete-orphan"
+    )
+    rankings: Mapped[list["ProviderRanking"]] = relationship(
+        back_populates="job", cascade="all, delete-orphan"
+    )
+    recommendation: Mapped["Recommendation | None"] = relationship(
+        back_populates="job", cascade="all, delete-orphan", uselist=False
     )
 
 
@@ -198,6 +205,10 @@ class Provider(Base):
     )
     quotes: Mapped[list["Quote"]] = relationship(back_populates="provider")
     negotiations: Mapped[list["Negotiation"]] = relationship(back_populates="provider")
+    rankings: Mapped[list["ProviderRanking"]] = relationship(back_populates="provider")
+    recommendations: Mapped[list["Recommendation"]] = relationship(
+        back_populates="recommended_provider"
+    )
 
 
 class ProviderCall(Base):
@@ -247,8 +258,6 @@ class ProviderCall(Base):
     negotiations: Mapped[list["Negotiation"]] = relationship(
         back_populates="provider_call", cascade="all, delete-orphan"
     )
-
-
 class Quote(Base):
     __tablename__ = "quotes"
     __table_args__ = (
@@ -313,6 +322,12 @@ class Quote(Base):
         back_populates="quote",
         cascade="all, delete-orphan",
         foreign_keys="Negotiation.quote_id",
+    )
+    ranking: Mapped["ProviderRanking | None"] = relationship(
+        back_populates="quote", cascade="all, delete-orphan", uselist=False
+    )
+    recommendations: Mapped[list["Recommendation"]] = relationship(
+        back_populates="recommended_quote"
     )
 
 
@@ -399,3 +414,89 @@ class Negotiation(Base):
     competing_quote: Mapped[Quote | None] = relationship(
         foreign_keys=[competing_quote_id]
     )
+
+
+class ProviderRanking(Base):
+    __tablename__ = "provider_rankings"
+    __table_args__ = (
+        CheckConstraint("rank > 0", name="ck_provider_ranking_rank_positive"),
+        UniqueConstraint("job_id", "provider_id", name="uq_ranking_job_provider"),
+        UniqueConstraint("job_id", "quote_id", name="uq_ranking_job_quote"),
+        UniqueConstraint("job_id", "rank", name="uq_ranking_job_rank"),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    job_id: Mapped[UUID] = mapped_column(
+        ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    provider_id: Mapped[UUID] = mapped_column(
+        ForeignKey("providers.id"), nullable=False, index=True
+    )
+    quote_id: Mapped[UUID] = mapped_column(
+        ForeignKey("quotes.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+        index=True,
+    )
+    rank: Mapped[int] = mapped_column(Integer, nullable=False)
+    total_score: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
+    price_score: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
+    completeness_score: Mapped[Decimal] = mapped_column(
+        Numeric(6, 2), nullable=False
+    )
+    availability_score: Mapped[Decimal] = mapped_column(
+        Numeric(6, 2), nullable=False
+    )
+    negotiation_score: Mapped[Decimal] = mapped_column(
+        Numeric(6, 2), nullable=False
+    )
+    confidence_score: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
+    final_price: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
+    reasons: Mapped[list[str]] = mapped_column(JSON, default=list)
+    warnings: Mapped[list[str]] = mapped_column(JSON, default=list)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(
+        UTCDateTime(), default=utc_now, onupdate=utc_now
+    )
+
+    job: Mapped[Job] = relationship(back_populates="rankings")
+    provider: Mapped[Provider] = relationship(back_populates="rankings")
+    quote: Mapped[Quote] = relationship(back_populates="ranking")
+
+
+class Recommendation(Base):
+    __tablename__ = "recommendations"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    job_id: Mapped[UUID] = mapped_column(
+        ForeignKey("jobs.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+        index=True,
+    )
+    recommended_provider_id: Mapped[UUID] = mapped_column(
+        ForeignKey("providers.id"), nullable=False
+    )
+    recommended_quote_id: Mapped[UUID] = mapped_column(
+        ForeignKey("quotes.id", ondelete="CASCADE"), nullable=False
+    )
+    status: Mapped[RecommendationStatus] = mapped_column(
+        Enum(RecommendationStatus, native_enum=False, length=20),
+        nullable=False,
+        default=RecommendationStatus.DRAFT,
+    )
+    summary: Mapped[str] = mapped_column(Text, nullable=False)
+    rationale: Mapped[str] = mapped_column(Text, nullable=False)
+    original_price: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
+    final_price: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
+    total_savings: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(
+        UTCDateTime(), default=utc_now, onupdate=utc_now
+    )
+
+    job: Mapped[Job] = relationship(back_populates="recommendation")
+    recommended_provider: Mapped[Provider] = relationship(
+        back_populates="recommendations"
+    )
+    recommended_quote: Mapped[Quote] = relationship(back_populates="recommendations")

@@ -62,3 +62,8 @@ class NegotiationOutcome(str, Enum):
     NO_CHANGE = "no_change"
     REJECTED = "rejected"
     OTHER = "other"
+
+
+class RecommendationStatus(str, Enum):
+    DRAFT = "draft"
+    FINAL = "final"

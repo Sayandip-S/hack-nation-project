@@ -7,8 +7,10 @@ from app.models.domain import (
     Negotiation,
     Provider,
     ProviderCall,
+    ProviderRanking,
     Quote,
     QuoteItem,
+    Recommendation,
 )
 from app.models.enums import (
     IntakeType,
@@ -17,6 +19,7 @@ from app.models.enums import (
     NegotiationOutcome,
     ProviderCallStatus,
     QuoteExtractionSource,
+    RecommendationStatus,
     SpecificationStatus,
     TranscriptSpeaker,
 )
@@ -33,9 +36,12 @@ __all__ = [
     "Provider",
     "ProviderCall",
     "ProviderCallStatus",
+    "ProviderRanking",
     "Quote",
     "QuoteExtractionSource",
     "QuoteItem",
+    "Recommendation",
+    "RecommendationStatus",
     "SpecificationStatus",
     "TranscriptSpeaker",
 ]

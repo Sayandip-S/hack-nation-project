@@ -18,9 +18,16 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.intakes import IntakeResponse, TextIntakeCreate, VoiceReferenceCreate
 from app.schemas.jobs import JobCreate, JobResponse
+from app.schemas.details import JobDetailsResponse
+from app.schemas.recommendations import (
+    ProviderRankingResponse,
+    RecommendationResponse,
+)
 from app.schemas.specifications import JobSpecificationResponse, SpecificationUpsert
+from app.services import details as details_service
 from app.services import intakes as intake_service
 from app.services import jobs as job_service
+from app.services import recommendations as recommendation_service
 from app.services import specifications as specification_service
 
 router = APIRouter(prefix="/api/v1/jobs", tags=["jobs"])
@@ -111,3 +118,28 @@ def get_specification(job_id: UUID, db: DatabaseSession):
 )
 def confirm_specification(job_id: UUID, db: DatabaseSession):
     return specification_service.confirm_specification(db, job_id)
+
+
+@router.post("/{job_id}/rank", response_model=list[ProviderRankingResponse])
+def rank_providers(job_id: UUID, db: DatabaseSession):
+    return recommendation_service.rank_providers(db, job_id)
+
+
+@router.get("/{job_id}/rankings", response_model=list[ProviderRankingResponse])
+def list_rankings(job_id: UUID, db: DatabaseSession):
+    return recommendation_service.list_rankings(db, job_id)
+
+
+@router.post("/{job_id}/recommendation", response_model=RecommendationResponse)
+def create_recommendation(job_id: UUID, db: DatabaseSession):
+    return recommendation_service.create_recommendation(db, job_id)
+
+
+@router.get("/{job_id}/recommendation", response_model=RecommendationResponse)
+def get_recommendation(job_id: UUID, db: DatabaseSession):
+    return recommendation_service.get_recommendation_or_404(db, job_id)
+
+
+@router.get("/{job_id}/details", response_model=JobDetailsResponse)
+def get_job_details(job_id: UUID, db: DatabaseSession):
+    return details_service.get_job_details(db, job_id)
