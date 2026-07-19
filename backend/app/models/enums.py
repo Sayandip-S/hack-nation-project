@@ -39,3 +39,26 @@ class TranscriptSpeaker(str, Enum):
     PROVIDER = "provider"
     SYSTEM = "system"
     UNKNOWN = "unknown"
+
+
+class QuoteExtractionSource(str, Enum):
+    MANUAL = "manual"
+    ELEVENLABS_ANALYSIS = "elevenlabs_analysis"
+    TRANSCRIPT_PARSER = "transcript_parser"
+
+
+class NegotiationLeverageType(str, Enum):
+    COMPETING_QUOTE = "competing_quote"
+    FLEXIBLE_DATE = "flexible_date"
+    REDUCED_SCOPE = "reduced_scope"
+    BUNDLED_SERVICES = "bundled_services"
+    OTHER = "other"
+
+
+class NegotiationOutcome(str, Enum):
+    PRICE_REDUCED = "price_reduced"
+    TERMS_IMPROVED = "terms_improved"
+    PRICE_AND_TERMS_IMPROVED = "price_and_terms_improved"
+    NO_CHANGE = "no_change"
+    REJECTED = "rejected"
+    OTHER = "other"

@@ -33,3 +33,14 @@ set returns the existing records with `200 OK`; a different set returns `409
 Conflict`. Calls move from pending to in-progress, completed, or failed according to
 the API's explicit transition rules. This milestone records call data but does not
 place external calls.
+
+## Quote and negotiation calculations
+
+All monetary values use `Decimal` and are rounded to two decimal places with
+`ROUND_HALF_UP`. Item totals are calculated as quantity × unit price; quote subtotal
+and total are recalculated server-side. Supplied totals may differ by at most 0.01.
+Blank inclusion and exclusion entries are removed. Quotes are accepted only for
+in-progress or completed calls; failed and pending calls return `409 Conflict`.
+Negotiation savings and percentages are always calculated by the server, and
+competing-quote leverage must reference a stored quote from another provider on the
+same job.

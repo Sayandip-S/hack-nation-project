@@ -1,6 +1,7 @@
 """SQLAlchemy 2 models for jobs, intake, and moving specifications."""
 
 from datetime import UTC, date, datetime
+from decimal import Decimal
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -14,6 +15,7 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     Integer,
+    Numeric,
     String,
     Text,
     UniqueConstraint,
@@ -25,7 +27,10 @@ from app.database import Base
 from app.models.enums import (
     IntakeType,
     JobStatus,
+    NegotiationLeverageType,
+    NegotiationOutcome,
     ProviderCallStatus,
+    QuoteExtractionSource,
     SpecificationStatus,
 )
 
@@ -94,6 +99,12 @@ class Job(Base):
     provider_calls: Mapped[list["ProviderCall"]] = relationship(
         back_populates="job",
         cascade="all, delete-orphan",
+    )
+    quotes: Mapped[list["Quote"]] = relationship(
+        back_populates="job", cascade="all, delete-orphan"
+    )
+    negotiations: Mapped[list["Negotiation"]] = relationship(
+        back_populates="job", cascade="all, delete-orphan"
     )
 
 
@@ -185,6 +196,8 @@ class Provider(Base):
     provider_calls: Mapped[list["ProviderCall"]] = relationship(
         back_populates="provider"
     )
+    quotes: Mapped[list["Quote"]] = relationship(back_populates="provider")
+    negotiations: Mapped[list["Negotiation"]] = relationship(back_populates="provider")
 
 
 class ProviderCall(Base):
@@ -226,3 +239,163 @@ class ProviderCall(Base):
 
     job: Mapped[Job] = relationship(back_populates="provider_calls")
     provider: Mapped[Provider] = relationship(back_populates="provider_calls")
+    quote: Mapped["Quote | None"] = relationship(
+        back_populates="provider_call",
+        cascade="all, delete-orphan",
+        uselist=False,
+    )
+    negotiations: Mapped[list["Negotiation"]] = relationship(
+        back_populates="provider_call", cascade="all, delete-orphan"
+    )
+
+
+class Quote(Base):
+    __tablename__ = "quotes"
+    __table_args__ = (
+        CheckConstraint("subtotal >= 0", name="ck_quote_subtotal_non_negative"),
+        CheckConstraint("tax_amount >= 0", name="ck_quote_tax_non_negative"),
+        CheckConstraint("total_amount > 0", name="ck_quote_total_positive"),
+        CheckConstraint(
+            "estimated_duration_hours IS NULL OR estimated_duration_hours > 0",
+            name="ck_quote_duration_positive",
+        ),
+        CheckConstraint(
+            "extraction_confidence IS NULL OR (extraction_confidence >= 0 AND extraction_confidence <= 1)",
+            name="ck_quote_confidence_range",
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    job_id: Mapped[UUID] = mapped_column(
+        ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    provider_id: Mapped[UUID] = mapped_column(
+        ForeignKey("providers.id"), nullable=False, index=True
+    )
+    provider_call_id: Mapped[UUID] = mapped_column(
+        ForeignKey("provider_calls.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+        index=True,
+    )
+    currency: Mapped[str] = mapped_column(String(3), nullable=False, default="EUR")
+    subtotal: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
+    tax_amount: Mapped[Decimal] = mapped_column(
+        Numeric(14, 2), nullable=False, default=Decimal("0.00")
+    )
+    total_amount: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
+    valid_until: Mapped[date | None] = mapped_column(Date)
+    availability_confirmed: Mapped[bool] = mapped_column(Boolean, default=False)
+    estimated_duration_hours: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
+    inclusions: Mapped[list[str]] = mapped_column(JSON, default=list)
+    exclusions: Mapped[list[str]] = mapped_column(JSON, default=list)
+    terms: Mapped[str | None] = mapped_column(Text)
+    extraction_source: Mapped[QuoteExtractionSource] = mapped_column(
+        Enum(QuoteExtractionSource, native_enum=False, length=30),
+        nullable=False,
+        default=QuoteExtractionSource.MANUAL,
+    )
+    extraction_confidence: Mapped[Decimal | None] = mapped_column(Numeric(6, 4))
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(
+        UTCDateTime(), default=utc_now, onupdate=utc_now
+    )
+
+    job: Mapped[Job] = relationship(back_populates="quotes")
+    provider: Mapped[Provider] = relationship(back_populates="quotes")
+    provider_call: Mapped[ProviderCall] = relationship(back_populates="quote")
+    items: Mapped[list["QuoteItem"]] = relationship(
+        back_populates="quote",
+        cascade="all, delete-orphan",
+        order_by="QuoteItem.sequence",
+    )
+    negotiations: Mapped[list["Negotiation"]] = relationship(
+        back_populates="quote",
+        cascade="all, delete-orphan",
+        foreign_keys="Negotiation.quote_id",
+    )
+
+
+class QuoteItem(Base):
+    __tablename__ = "quote_items"
+    __table_args__ = (
+        CheckConstraint("sequence > 0", name="ck_quote_item_sequence_positive"),
+        CheckConstraint("quantity > 0", name="ck_quote_item_quantity_positive"),
+        CheckConstraint(
+            "unit_price >= 0", name="ck_quote_item_unit_price_non_negative"
+        ),
+        CheckConstraint("total_price >= 0", name="ck_quote_item_total_non_negative"),
+        UniqueConstraint("quote_id", "sequence", name="uq_quote_item_quote_sequence"),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    quote_id: Mapped[UUID] = mapped_column(
+        ForeignKey("quotes.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    sequence: Mapped[int] = mapped_column(Integer, nullable=False)
+    category: Mapped[str] = mapped_column(String(100), nullable=False)
+    description: Mapped[str] = mapped_column(String(500), nullable=False)
+    quantity: Mapped[Decimal] = mapped_column(Numeric(14, 4), nullable=False)
+    unit: Mapped[str | None] = mapped_column(String(50))
+    unit_price: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
+    total_price: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utc_now)
+
+    quote: Mapped[Quote] = relationship(back_populates="items")
+
+
+class Negotiation(Base):
+    __tablename__ = "negotiations"
+    __table_args__ = (
+        CheckConstraint("before_total > 0", name="ck_negotiation_before_positive"),
+        CheckConstraint("after_total > 0", name="ck_negotiation_after_positive"),
+        CheckConstraint(
+            "savings_amount >= 0", name="ck_negotiation_savings_non_negative"
+        ),
+        CheckConstraint(
+            "savings_percentage >= 0", name="ck_negotiation_percentage_non_negative"
+        ),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    job_id: Mapped[UUID] = mapped_column(
+        ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    provider_id: Mapped[UUID] = mapped_column(
+        ForeignKey("providers.id"), nullable=False
+    )
+    provider_call_id: Mapped[UUID] = mapped_column(
+        ForeignKey("provider_calls.id", ondelete="CASCADE"), nullable=False
+    )
+    quote_id: Mapped[UUID] = mapped_column(
+        ForeignKey("quotes.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    leverage_type: Mapped[NegotiationLeverageType] = mapped_column(
+        Enum(NegotiationLeverageType, native_enum=False, length=30), nullable=False
+    )
+    leverage_description: Mapped[str] = mapped_column(Text, nullable=False)
+    competing_quote_id: Mapped[UUID | None] = mapped_column(ForeignKey("quotes.id"))
+    before_total: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
+    requested_total: Mapped[Decimal | None] = mapped_column(Numeric(14, 2))
+    after_total: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
+    savings_amount: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
+    savings_percentage: Mapped[Decimal] = mapped_column(Numeric(8, 2), nullable=False)
+    before_terms: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    after_terms: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    outcome: Mapped[NegotiationOutcome] = mapped_column(
+        Enum(NegotiationOutcome, native_enum=False, length=40), nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(
+        UTCDateTime(), default=utc_now, onupdate=utc_now
+    )
+
+    job: Mapped[Job] = relationship(back_populates="negotiations")
+    provider: Mapped[Provider] = relationship(back_populates="negotiations")
+    provider_call: Mapped[ProviderCall] = relationship(back_populates="negotiations")
+    quote: Mapped[Quote] = relationship(
+        back_populates="negotiations", foreign_keys=[quote_id]
+    )
+    competing_quote: Mapped[Quote | None] = relationship(
+        foreign_keys=[competing_quote_id]
+    )

@@ -20,6 +20,7 @@ from app.database import (
 from app.routers.jobs import router as jobs_router
 from app.routers.provider_calls import router as provider_calls_router
 from app.routers.providers import router as providers_router
+from app.routers.quotes import router as quotes_router
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -60,6 +61,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.include_router(jobs_router)
     application.include_router(providers_router)
     application.include_router(provider_calls_router)
+    application.include_router(quotes_router)
 
     @application.get("/")
     def root() -> dict[str, str]:
