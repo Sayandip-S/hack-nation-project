@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app import models  # noqa: F401 - register model metadata before create_all
 from app.config import Settings, get_settings
 from app.database import (
     Base,
@@ -16,6 +17,7 @@ from app.database import (
     database_is_healthy,
     engine,
 )
+from app.routers.jobs import router as jobs_router
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -53,6 +55,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    application.include_router(jobs_router)
 
     @application.get("/")
     def root() -> dict[str, str]:
