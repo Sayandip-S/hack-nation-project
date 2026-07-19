@@ -258,6 +258,8 @@ class ProviderCall(Base):
     negotiations: Mapped[list["Negotiation"]] = relationship(
         back_populates="provider_call", cascade="all, delete-orphan"
     )
+
+
 class Quote(Base):
     __tablename__ = "quotes"
     __table_args__ = (
@@ -441,15 +443,9 @@ class ProviderRanking(Base):
     rank: Mapped[int] = mapped_column(Integer, nullable=False)
     total_score: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
     price_score: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
-    completeness_score: Mapped[Decimal] = mapped_column(
-        Numeric(6, 2), nullable=False
-    )
-    availability_score: Mapped[Decimal] = mapped_column(
-        Numeric(6, 2), nullable=False
-    )
-    negotiation_score: Mapped[Decimal] = mapped_column(
-        Numeric(6, 2), nullable=False
-    )
+    completeness_score: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
+    availability_score: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
+    negotiation_score: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
     confidence_score: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
     final_price: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
     reasons: Mapped[list[str]] = mapped_column(JSON, default=list)

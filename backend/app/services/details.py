@@ -31,9 +31,7 @@ def get_job_details(db: Session, job_id: UUID) -> dict:
     job = get_job_or_404(db, job_id)
     intakes = list(
         db.scalars(
-            select(Intake)
-            .where(Intake.job_id == job_id)
-            .order_by(Intake.sequence)
+            select(Intake).where(Intake.job_id == job_id).order_by(Intake.sequence)
         )
     )
     specification = db.scalar(

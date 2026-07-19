@@ -2,9 +2,9 @@
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
-from pydantic import Field, field_validator
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
@@ -22,6 +22,13 @@ class Settings(BaseSettings):
     upload_dir: Path = Path("uploads")
     max_upload_size_mb: int = Field(default=10, gt=0)
     enable_demo_endpoints: bool = False
+    ai_provider: Literal["mock", "openai", "xai"] = "mock"
+    ai_mock_mode: bool = True
+    openai_api_key: SecretStr | None = None
+    openai_model: str | None = None
+    xai_api_key: SecretStr | None = None
+    xai_model: str | None = None
+    xai_base_url: str = "https://api.x.ai/v1"
     elevenlabs_api_key: str | None = None
     elevenlabs_agent_id: str | None = None
     elevenlabs_agent_phone_number_id: str | None = None

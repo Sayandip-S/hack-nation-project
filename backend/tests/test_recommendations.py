@@ -17,9 +17,7 @@ def prepare_job(client: TestClient) -> tuple[dict, list[dict]]:
     return job, calls
 
 
-def add_quotes(
-    client: TestClient, calls: list[dict], totals: list[str]
-) -> list[dict]:
+def add_quotes(client: TestClient, calls: list[dict], totals: list[str]) -> list[dict]:
     return [
         create_quote_for_call(client, call, simple_quote_payload(total)).json()
         for call, total in zip(calls, totals, strict=True)
@@ -140,9 +138,7 @@ def test_recommendation_always_uses_rank_one_and_completes_job(
     assert recommendation["final_price"] == "790.00"
     assert recommendation["total_savings"] == "0.00"
     assert repeated.json()["id"] == recommendation["id"]
-    assert (
-        client.get(f"/api/v1/jobs/{job['id']}").json()["status"] == "completed"
-    )
+    assert client.get(f"/api/v1/jobs/{job['id']}").json()["status"] == "completed"
     assert (
         client.get(f"/api/v1/jobs/{job['id']}/recommendation").json()["id"]
         == recommendation["id"]
@@ -194,13 +190,13 @@ def test_details_endpoint_returns_evidence_and_workflow_summary(
     assert len(body["recording_references"]) == 1
     assert len(body["quotes"]) == 3
     assert all(
-        [item["sequence"] for item in quote["items"]] == [1]
-        for quote in body["quotes"]
+        [item["sequence"] for item in quote["items"]] == [1] for quote in body["quotes"]
     )
     assert len(body["rankings"]) == 3
-    assert body["recommendation"]["recommended_quote_id"] == body["rankings"][0][
-        "quote_id"
-    ]
+    assert (
+        body["recommendation"]["recommended_quote_id"]
+        == body["rankings"][0]["quote_id"]
+    )
     assert workflow == {
         "current_status": "completed",
         "intake_received": True,

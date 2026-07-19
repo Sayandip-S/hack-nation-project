@@ -23,12 +23,17 @@ from app.schemas.recommendations import (
     ProviderRankingResponse,
     RecommendationResponse,
 )
-from app.schemas.specifications import JobSpecificationResponse, SpecificationUpsert
+from app.schemas.specifications import (
+    JobSpecificationResponse,
+    SpecificationExtractionResponse,
+    SpecificationUpsert,
+)
 from app.services import details as details_service
 from app.services import intakes as intake_service
 from app.services import jobs as job_service
 from app.services import recommendations as recommendation_service
 from app.services import specifications as specification_service
+from app.services import specification_extraction as extraction_service
 
 router = APIRouter(prefix="/api/v1/jobs", tags=["jobs"])
 DatabaseSession = Annotated[Session, Depends(get_db)]
@@ -91,6 +96,16 @@ def create_voice_intake(
 @router.get("/{job_id}/intakes", response_model=list[IntakeResponse])
 def list_intakes(job_id: UUID, db: DatabaseSession):
     return intake_service.list_intakes(db, job_id)
+
+
+@router.post(
+    "/{job_id}/extract-specification",
+    response_model=SpecificationExtractionResponse,
+)
+def extract_specification(job_id: UUID, request: Request, db: DatabaseSession):
+    return extraction_service.extract_specification(
+        db, job_id, request.app.state.settings
+    )
 
 
 @router.put("/{job_id}/specification", response_model=JobSpecificationResponse)

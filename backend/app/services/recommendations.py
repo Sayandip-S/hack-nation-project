@@ -82,7 +82,12 @@ def _completeness(quote: Quote) -> tuple[Decimal, list[str], list[str]]:
             "Estimated duration provided",
             "Estimated duration missing",
         ),
-        (quote.valid_until is not None, 10, "Validity date provided", "Validity date missing"),
+        (
+            quote.valid_until is not None,
+            10,
+            "Validity date provided",
+            "Validity date missing",
+        ),
     ):
         if present:
             score += Decimal(points)
