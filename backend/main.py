@@ -1,8 +1,5 @@
-from fastapi import FastAPI
+"""Compatibility entry point for the documented Uvicorn command."""
 
-app = FastAPI()
+from app.main import app
 
-
-@app.get("/")
-def root() -> dict[str, str]:
-    return {"message": "Backend is running"}
+__all__ = ["app"]

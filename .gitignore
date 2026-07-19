@@ -10,7 +10,15 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .coverage
+coverage.xml
 htmlcov/
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploaded files
+uploads/*
+!uploads/.gitkeep
 
 # JavaScript
 node_modules/
